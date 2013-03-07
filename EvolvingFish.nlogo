@@ -5,7 +5,6 @@ globals [
   mutation-rate
   mutation-step
   energy-threshold
-  replenish-speed
 ]
 
 turtles-own [
@@ -44,7 +43,7 @@ to setup
       setxy random-xcor random-ycor
       set shape "fish"
       
-      set energy 100
+      set energy 10
       set max-food-turn random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
@@ -70,8 +69,8 @@ end
 
 to setup-patches ;; Make sure food is plenty :-)
   ask patches [
-    set max-well random 50
-    set well max-well
+    set max-well 25
+    set well random 5
     recolor-patch
   ]
 end
@@ -99,8 +98,10 @@ end
 
 to replenish  ;; patch procedure
   if well < max-well [
-    set well well + ((max-well - well) * (replenish-speed / 100))
+    set well well + (max-well - well) * (replenish-speed / 100) 
+    set well well + (max-well - well) * (sum [well] of neighbors / 20000)
   ]
+  
 end
 
 to recolor-patch  ;; patch procedure
@@ -173,7 +174,7 @@ to find-fishes
 end
 
 to hunt
-  set energy energy - 0.1
+  set energy energy - 0.5
   find-fishes
   if any? fishes-nearby
     [ turn-towards average-heading-towards-fishes max-food-turn ]
@@ -259,7 +260,7 @@ to mate [agent1 agent2]
         if is-fish? agent1
         [ set max-flee-turn   combine-gene [max-flee-turn]     of agent1 [max-flee-turn]     of agent2 ]
         
-        setxy random-xcor random-ycor
+        setxy xcor + random 2 ycor - random 2
         set energy random-normal 50 20 
       ]
       ask agent1 [ set energy energy / 2 ]
@@ -394,7 +395,7 @@ fish-population
 fish-population
 1.0
 1000.0
-44
+140
 1.0
 1
 NIL
@@ -439,7 +440,7 @@ shark-population
 shark-population
 0
 1000
-34
+14
 1
 1
 NIL
@@ -520,6 +521,39 @@ PENS
 "mean" 1.0 0 -16777216 true "" "plot mean-energy sharks"
 "min" 1.0 0 -7500403 true "" "plot min-energy sharks"
 "max" 1.0 0 -2674135 true "" "plot max-energy sharks"
+
+SLIDER
+35
+263
+213
+296
+replenish-speed
+replenish-speed
+0
+10
+0.1
+0.1
+1
+NIL
+HORIZONTAL
+
+PLOT
+840
+360
+1040
+510
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot sum [well] of patches"
 
 @#$#@#$#@
 ## WHAT IS IT?
