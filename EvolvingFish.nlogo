@@ -5,6 +5,7 @@ globals [
   mutation-rate
   mutation-step
   energy-threshold
+  max-well ;; the max amount of resources in a patch
 ]
 
 turtles-own [
@@ -29,12 +30,11 @@ sharks-own [
 
 patches-own [
   well      ;; the amount of resources a patch has
-  max-well  ;; the max amount of resources for that patch
 ]
 
 to setup
   clear-all
-  
+  set max-well 6
   set energy-threshold 50
   
   create-fishes fish-population
@@ -43,7 +43,7 @@ to setup
       setxy random-xcor random-ycor
       set shape "fish"
       
-      set energy 10
+      set energy 150
       set max-food-turn random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
@@ -56,7 +56,7 @@ to setup
       setxy random-xcor random-ycor
       set shape "shark"
       
-      set energy 100
+      set energy 400
       set max-food-turn random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
@@ -69,8 +69,9 @@ end
 
 to setup-patches ;; Make sure food is plenty :-)
   ask patches [
-    set max-well 15
-    set well random 3
+
+    if (random-float 1 < 0.3 )
+    [ set well random-float 1 ]
     recolor-patch
   ]
 end
@@ -98,14 +99,15 @@ end
 
 to replenish  ;; patch procedure
   if well < max-well [
-    set well well + (max-well - well) * (replenish-speed / 100) 
-    set well well + (max-well - well) * (sum [well] of neighbors / 7500)
+    if (random-float 1 < 0.001 ) 
+      [set well well + (max-well - well) * (replenish-speed / 100)]
+    set well well + (max-well - well) * (sum [well] of neighbors / (max-well * 800))
   ]
   
 end
 
 to recolor-patch  ;; patch procedure
-   set pcolor scale-color green well 0 100
+   set pcolor scale-color green well 0 max-well
 end
 
 
@@ -262,7 +264,7 @@ to mate [agent1 agent2]
         [ set max-flee-turn   combine-gene [max-flee-turn]     of agent1 [max-flee-turn]     of agent2 ]
         
         setxy xcor + random 2 ycor - random 2
-        set energy random-normal 50 20 
+        set energy energy-threshold
       ]
       ask agent1 [ set energy energy / 2 ]
       ask agent2 [ set energy energy / 2 ] 
@@ -396,7 +398,7 @@ fish-population
 fish-population
 1.0
 1000.0
-140
+47
 1.0
 1
 NIL
@@ -411,7 +413,7 @@ vision
 vision
 0.0
 10.0
-2.5
+6
 0.5
 1
 patches
@@ -441,7 +443,7 @@ shark-population
 shark-population
 0
 1000
-14
+19
 1
 1
 NIL
@@ -532,7 +534,7 @@ replenish-speed
 replenish-speed
 0
 10
-0.1
+10
 0.1
 1
 NIL
