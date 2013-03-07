@@ -294,11 +294,14 @@ to-report mean-energy [agentset]
 end
 
 to-report min-energy [agentset]
-  let nrg 1000000000000000
-  ask agentset [
-    set nrg min list nrg energy
-  ]
-  report nrg
+  if-else count agentset = 0
+    [ report 0 ]
+    [ let nrg 1000000000000000
+      ask agentset [
+        set nrg min list nrg energy
+      ]
+      report nrg
+    ]
 end
 
 to-report max-energy [agentset]
