@@ -1,5 +1,5 @@
 breed [fishes fish]
-breed [predators predator]
+breed [sharks shark]
 
 turtles-own [
   flockmates         ;; agentset of nearby turtles
@@ -17,10 +17,18 @@ fishes-own [ max-flee-turn ] ;; Avoid predators
 
 to setup
   clear-all
-  crt population
-    [ set color yellow - 2 + random 7  ;; random shades look nice
+  
+  create-fishes fish-population
+    [ set color red - 2 + random 4  ;; random shades look nice
       set size 1.5  ;; easier to see
-      setxy random-xcor random-ycor ]
+      setxy random-xcor random-ycor
+      set shape "fish" ]
+    
+  create-sharks shark-population
+    [ set color gray - 2 + random 4  ;; random shades look nice
+      set size 4  ;; easier to see
+      setxy random-xcor random-ycor
+      set shape "shark" ]
   reset-ticks
 end
 
@@ -183,11 +191,11 @@ SLIDER
 51
 232
 84
-population
-population
+fish-population
+fish-population
 1.0
 1000.0
-654
+159
 1.0
 1
 NIL
@@ -221,6 +229,21 @@ minimum-separation
 0.25
 1
 patches
+HORIZONTAL
+
+SLIDER
+9
+14
+232
+47
+shark-population
+shark-population
+0
+1000
+144
+1
+1
+NIL
 HORIZONTAL
 
 @#$#@#$#@
@@ -430,13 +453,13 @@ Circle -16777216 true false 180 75 60
 Polygon -16777216 true false 150 168 90 184 62 210 47 232 67 244 90 220 109 205 150 198 192 205 210 220 227 242 251 229 236 206 212 183
 
 fish
-false
+true
 0
-Polygon -1 true false 44 131 21 87 15 86 0 120 15 150 0 180 13 214 20 212 45 166
-Polygon -1 true false 135 195 119 235 95 218 76 210 46 204 60 165
-Polygon -1 true false 75 45 83 77 71 103 86 114 166 78 135 60
-Polygon -7500403 true true 30 136 151 77 226 81 280 119 292 146 292 160 287 170 270 195 195 210 151 212 30 166
-Circle -16777216 true false 215 106 30
+Polygon -1 true false 131 256 87 279 86 285 120 300 150 285 180 300 214 287 212 280 166 255
+Polygon -1 true false 195 165 235 181 218 205 210 224 204 254 165 240
+Polygon -1 true false 45 225 77 217 103 229 114 214 78 134 60 165
+Polygon -7500403 true true 136 270 77 149 81 74 119 20 146 8 160 8 170 13 195 30 210 105 212 149 166 270
+Circle -16777216 true false 106 55 30
 
 flag
 false
@@ -512,6 +535,19 @@ Polygon -7500403 true true 165 180 165 210 225 180 255 120 210 135
 Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
+
+shark
+true
+0
+Polygon -7500403 true true 153 17 149 12 146 29 145 -1 138 0 119 53 107 110 117 196 133 246 134 261 99 290 112 291 142 281 175 291 185 290 158 260 154 231 164 236 161 220 156 214 160 168 164 91
+Polygon -7500403 true true 161 101 166 148 164 163 154 131
+Polygon -7500403 true true 108 112 83 128 74 140 76 144 97 141 112 147
+Circle -16777216 true false 129 32 12
+Line -16777216 false 134 78 150 78
+Line -16777216 false 134 83 150 83
+Line -16777216 false 134 88 150 88
+Polygon -7500403 true true 125 222 118 238 130 237
+Polygon -7500403 true true 157 179 161 195 156 199 152 194
 
 square
 false
