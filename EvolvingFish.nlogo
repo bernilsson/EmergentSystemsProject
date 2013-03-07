@@ -28,6 +28,11 @@ sharks-own [
   fishes-nearby      ;; agentset of nearby fishes
 ]
 
+patches-own [
+  well      ;; the amount of resources a patch has
+  max-well  ;; the max amount of resources for that patch
+]
+
 to setup
   clear-all
   
@@ -57,14 +62,32 @@ to setup
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
       set max-separate-turn random-float 10 ]
+
+  setup-patches
+
   reset-ticks
 end
 
+to setup-patches ;; Make sure food is plenty :-)
+  ask patches [
+    set max-well random 50
+    set well max-well
+    recolor-patch
+  ]
+end
+
+
+to recolor-patch  ;; patch procedure
+   set pcolor scale-color green well 0 100
+end
+
 to go
+  ask patches [ replenish ]
   ask turtles [ flock ]
   ask turtles with [ energy < energy-threshold ] [ die ]
   ask sharks [ hunt eat-fish ]
   ask fishes [ flee ]
+  ask patches [ recolor-patch ]
   
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
@@ -73,6 +96,13 @@ to go
   ;; animation, substitute the following line instead:
   ;;   ask turtles [ fd 1 ]
   tick
+end
+
+
+to replenish  ;; patch procedure
+  if well < max-well [
+    set well well + ((max-well - well) * (replenish-speed / 100))
+  ]
 end
 
 to flock  ;; turtle procedure
