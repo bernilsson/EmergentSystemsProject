@@ -5,6 +5,7 @@ globals [
   mutation-rate
   mutation-step
   energy-threshold
+  replenish-speed
 ]
 
 turtles-own [
@@ -25,6 +26,11 @@ fishes-own [
 
 sharks-own [
   fishes-nearby      ;; agentset of nearby fishes
+]
+
+patches-own [
+  well      ;; the amount of resources a patch has
+  max-well  ;; the max amount of resources for that patch
 ]
 
 to setup
@@ -56,16 +62,30 @@ to setup
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
       set max-separate-turn random-float 10 ]
+
+  setup-patches
+
   reset-ticks
 end
 
+to setup-patches ;; Make sure food is plenty :-)
+  ask patches [
+    set max-well random 50
+    set well max-well
+    recolor-patch
+  ]
+end
+
 to go
+  ask patches [ replenish ]
   ask turtles [ flock ]
-  ask turtles with [ energy = 0 ] [ die ]
+  ask turtles with [ energy <= 0 ] [ die ]
   ask sharks [ hunt eat-fish ]
   ask sharks with [ energy > energy-threshold ] [ reproduce-shark ]
-  ask fishes [ flee ]
+  ask fishes [ flee eat-patch ]
   ask fishes with [ energy > energy-threshold ] [ reproduce-fish ]
+  ask patches [ recolor-patch ]
+  
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
   repeat 5 [ ask turtles [ fd 0.2 ] display ]
@@ -74,6 +94,19 @@ to go
   ;;   ask turtles [ fd 1 ]
   tick
 end
+
+;;;;; Patch procedures 
+
+to replenish  ;; patch procedure
+  if well < max-well [
+    set well well + ((max-well - well) * (replenish-speed / 100))
+  ]
+end
+
+to recolor-patch  ;; patch procedure
+   set pcolor scale-color green well 0 100
+end
+
 
 to flock  ;; turtle procedure
   find-flockmates
@@ -140,7 +173,7 @@ to find-fishes
 end
 
 to hunt
-  set energy energy - 1
+  set energy energy - 0.1
   find-fishes
   if any? fishes-nearby
     [ turn-towards average-heading-towards-fishes max-food-turn ]
@@ -178,6 +211,13 @@ to flee
   if any? sharks-nearby
     [ turn-away average-heading-towards-sharks max-flee-turn ]
 end
+
+to eat-patch
+   if (energy < energy-threshold) and (well > 0) [
+    set energy energy + ( well / count fishes-here )
+    set well well - ( well / count fishes-here )
+  ]
+end 
 
 to-report average-heading-towards-sharks  ;; turtle procedure
   ;; "towards myself" gives us the heading from the other turtle
@@ -252,7 +292,31 @@ to-report mutate [value]
 end
 
 
+;; STATISTICS
 
+to-report mean-energy [agentset]
+  let nrg 0
+  ask agentset [
+    set nrg nrg + energy
+  ]
+  report nrg / max list 1 count agentset
+end
+
+to-report min-energy [agentset]
+  let nrg 1000000000000000
+  ask agentset [
+    set nrg min list nrg energy
+  ]
+  report nrg
+end
+
+to-report max-energy [agentset]
+  let nrg 0
+  ask agentset [
+    set nrg max list nrg energy
+  ]
+  report nrg
+end
 
 ; Copyright 1998 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -372,17 +436,17 @@ shark-population
 shark-population
 0
 1000
-10
+34
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-16
-226
-216
-376
+831
+33
+1031
+183
 Fishes
 NIL
 NIL
@@ -395,6 +459,64 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count fishes"
+
+PLOT
+831
+191
+1031
+341
+Sharks
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count sharks"
+
+PLOT
+1086
+34
+1286
+184
+Fish energy
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"mean" 1.0 0 -16777216 true "" "plot mean-energy fishes"
+"min" 1.0 0 -7500403 true "" "plot min-energy fishes"
+"max" 1.0 0 -2674135 true "" "plot max-energy fishes"
+
+PLOT
+1086
+192
+1286
+342
+Mean shark energy
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"mean" 1.0 0 -16777216 true "" "plot mean-energy sharks"
+"min" 1.0 0 -7500403 true "" "plot min-energy sharks"
+"max" 1.0 0 -2674135 true "" "plot max-energy sharks"
 
 @#$#@#$#@
 ## WHAT IS IT?
