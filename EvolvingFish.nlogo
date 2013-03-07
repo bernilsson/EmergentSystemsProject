@@ -1,8 +1,23 @@
 breed [fishes fish]
 breed [sharks shark]
 
-turtles-own [
-  flockmates         ;; agentset of nearby turtles
+fishes-own [
+  flockmates         ;; agentset of nearby fishes
+  nearest-neighbor   ;; closest one of our flockmates
+  
+  max-food-turn ;; Find food
+  
+  ;; Staying close:
+  max-align-turn
+  max-cohere-turn
+  max-separate-turn
+  
+  ;; Avoid predators
+  max-flee-turn
+]
+
+sharks-own [
+  flockmates         ;; agentset of nearby sharks
   nearest-neighbor   ;; closest one of our flockmates
   
   max-food-turn ;; Find food
@@ -12,8 +27,6 @@ turtles-own [
   max-cohere-turn
   max-separate-turn
 ]
-
-fishes-own [ max-flee-turn ] ;; Avoid predators
 
 to setup
   clear-all
@@ -54,7 +67,7 @@ to flock  ;; turtle procedure
 end
 
 to find-flockmates  ;; turtle procedure
-  set flockmates other turtles in-radius vision
+  set flockmates other breed in-radius vision
 end
 
 to find-nearest-neighbor ;; turtle procedure
