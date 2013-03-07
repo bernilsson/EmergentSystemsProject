@@ -1,10 +1,16 @@
 breed [fishes fish]
 breed [predators predator]
 
+globals [
+  mutation-rate
+  mutation-step
+  energy-threshold
+]
+
 turtles-own [
   flockmates         ;; agentset of nearby turtles
   nearest-neighbor   ;; closest one of our flockmates
-  
+  energy
   max-food-turn ;; Find food
   
   ;; Staying close:
@@ -103,6 +109,33 @@ to turn-away [new-heading max-turn]  ;; turtle procedure
   turn-at-most (subtract-headings heading new-heading) max-turn
 end
 
+
+;; Creates offspring from mating
+to reproduce-fish [agent1 agent2]
+  if ( [energy] of agent1 > energy-threshold ) and
+    ( [energy] of agent2 > energy-threshold )
+    [
+      hatch 1
+        [
+          set max-align-turn    combine-gene [max-align-turn]    of agent1 [max-align-turn]    of agent2
+          set max-cohere-turn   combine-gene [max-cohere-turn]   of agent1 [max-cohere-turn]   of agent2
+          set max-separate-turn combine-gene [max-separate-turn] of agent1 [max-separate-turn] of agent2
+          set max-flee-turn     combine-gene [max-flee-turn]     of agent1 [max-flee-turn]     of agent2
+          
+          setxy random-xcor random-ycor
+          set energy random-normal 50 20
+          
+      ]
+      ask agent1 [ set energy energy / 2 ]
+      ask agent2 [ set energy energy / 2 ]
+    
+  ]
+end
+
+to-report combine-gene [agent1 agent2 ]
+  report mutate cross agent1 agent2
+end
+
 ;; turn right by "turn" degrees (or left if "turn" is negative),
 ;; but never turn more than "max-turn" degrees
 to turn-at-most [turn max-turn]  ;; turtle procedure
@@ -112,6 +145,18 @@ to turn-at-most [turn max-turn]  ;; turtle procedure
         [ lt max-turn ] ]
     [ rt turn ]
 end
+
+to-report cross [gene-A gene-B]
+  report one-of (list gene-A gene-B)
+end
+
+to-report mutate [value]
+  report ifelse-value (random-float 100 < mutation-rate)
+                [value + ((random-float 2 * mutation-step) - mutation-step)]
+             [value]
+end
+
+
 
 
 ; Copyright 1998 Uri Wilensky.
