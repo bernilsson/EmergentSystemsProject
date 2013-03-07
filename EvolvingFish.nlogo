@@ -69,8 +69,8 @@ end
 
 to setup-patches ;; Make sure food is plenty :-)
   ask patches [
-    set max-well 25
-    set well random 5
+    set max-well 15
+    set well random 3
     recolor-patch
   ]
 end
@@ -99,7 +99,7 @@ end
 to replenish  ;; patch procedure
   if well < max-well [
     set well well + (max-well - well) * (replenish-speed / 100) 
-    set well well + (max-well - well) * (sum [well] of neighbors / 20000)
+    set well well + (max-well - well) * (sum [well] of neighbors / 7500)
   ]
   
 end
@@ -208,7 +208,7 @@ to find-sharks
 end
 
 to flee
-  set energy energy - 0.1
+  set energy energy - 0.5
   find-sharks
   if any? sharks-nearby
     [ turn-away average-heading-towards-sharks max-flee-turn ]
@@ -411,7 +411,7 @@ vision
 vision
 0.0
 10.0
-6
+2.5
 0.5
 1
 patches
