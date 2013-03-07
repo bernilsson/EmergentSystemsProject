@@ -208,6 +208,7 @@ to find-sharks
 end
 
 to flee
+  set energy energy - 0.1
   find-sharks
   if any? sharks-nearby
     [ turn-away average-heading-towards-sharks max-flee-turn ]
