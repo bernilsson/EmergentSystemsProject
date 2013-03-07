@@ -1,7 +1,19 @@
+breed [fishes fish]
+breed [predators predator]
+
 turtles-own [
   flockmates         ;; agentset of nearby turtles
   nearest-neighbor   ;; closest one of our flockmates
+  
+  max-food-turn ;; Find food
+  
+  ;; Staying close:
+  max-align-turn
+  max-cohere-turn
+  max-separate-turn
 ]
+
+fishes-own [ max-flee-turn ] ;; Avoid predators
 
 to setup
   clear-all
@@ -175,55 +187,10 @@ population
 population
 1.0
 1000.0
-300
+654
 1.0
 1
 NIL
-HORIZONTAL
-
-SLIDER
-4
-217
-237
-250
-max-align-turn
-max-align-turn
-0.0
-20.0
-5
-0.25
-1
-degrees
-HORIZONTAL
-
-SLIDER
-4
-251
-237
-284
-max-cohere-turn
-max-cohere-turn
-0.0
-20.0
-3
-0.25
-1
-degrees
-HORIZONTAL
-
-SLIDER
-4
-285
-237
-318
-max-separate-turn
-max-separate-turn
-0.0
-20.0
-1.5
-0.25
-1
-degrees
 HORIZONTAL
 
 SLIDER
@@ -235,7 +202,7 @@ vision
 vision
 0.0
 10.0
-3
+4
 0.5
 1
 patches
