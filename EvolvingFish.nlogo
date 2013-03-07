@@ -1,7 +1,6 @@
 breed [fishes fish]
 breed [sharks shark]
 
-
 globals [
   mutation-rate
   mutation-step
@@ -32,12 +31,15 @@ sharks-own [
 to setup
   clear-all
   
+  set energy-threshold 10
+  
   create-fishes fish-population
     [ set color red - 2 + random 4  ;; random shades look nice
       set size 1.5  ;; easier to see
       setxy random-xcor random-ycor
       set shape "fish"
       
+      set energy 100
       set max-food-turn random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
@@ -50,6 +52,7 @@ to setup
       setxy random-xcor random-ycor
       set shape "shark"
       
+      set energy 100
       set max-food-turn random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
@@ -59,8 +62,10 @@ end
 
 to go
   ask turtles [ flock ]
-  ask sharks [ hunt ]
+  ask turtles with [ energy < energy-threshold ] [ die ]
+  ask sharks [ hunt eat-fish ]
   ask fishes [ flee ]
+  
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
   repeat 5 [ ask turtles [ fd 0.2 ] display ]
@@ -135,11 +140,17 @@ to find-fishes
 end
 
 to hunt
+  set energy energy - 1
   find-fishes
-  
   if any? fishes-nearby
     [ turn-towards average-heading-towards-fishes max-food-turn ]
 end
+
+to eat-fish
+  set energy energy + (50 * count fishes-here)
+  ask fishes-here [die]
+end
+  
 
 to-report average-heading-towards-fishes  ;; turtle procedure
   ;; "towards myself" gives us the heading from the other turtle
@@ -160,7 +171,6 @@ end
 
 to flee
   find-sharks
-  
   if any? sharks-nearby
     [ turn-away average-heading-towards-sharks max-flee-turn ]
 end
@@ -359,6 +369,24 @@ shark-population
 1
 NIL
 HORIZONTAL
+
+PLOT
+16
+226
+216
+376
+Fishes
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count fishes"
 
 @#$#@#$#@
 ## WHAT IS IT?
