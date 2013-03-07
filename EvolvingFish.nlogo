@@ -140,7 +140,7 @@ to find-fishes
 end
 
 to hunt
-  set energy energy - 1
+  set energy energy - 0.1
   find-fishes
   if any? fishes-nearby
     [ turn-towards average-heading-towards-fishes max-food-turn ]
@@ -244,7 +244,31 @@ to-report mutate [value]
 end
 
 
+;; STATISTICS
 
+to-report mean-energy [agentset]
+  let nrg 0
+  ask agentset [
+    set nrg nrg + energy
+  ]
+  report nrg / max list 1 count agentset
+end
+
+to-report min-energy [agentset]
+  let nrg 1000000000000000
+  ask agentset [
+    set nrg min list nrg energy
+  ]
+  report nrg
+end
+
+to-report max-energy [agentset]
+  let nrg 0
+  ask agentset [
+    set nrg max list nrg energy
+  ]
+  report nrg
+end
 
 ; Copyright 1998 Uri Wilensky.
 ; See Info tab for full copyright and license.
@@ -364,17 +388,17 @@ shark-population
 shark-population
 0
 1000
-10
+34
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-16
-226
-216
-376
+831
+33
+1031
+183
 Fishes
 NIL
 NIL
@@ -387,6 +411,64 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count fishes"
+
+PLOT
+831
+191
+1031
+341
+Sharks
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count sharks"
+
+PLOT
+1086
+34
+1286
+184
+Fish energy
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"mean" 1.0 0 -16777216 true "" "plot mean-energy fishes"
+"min" 1.0 0 -7500403 true "" "plot min-energy fishes"
+"max" 1.0 0 -2674135 true "" "plot max-energy fishes"
+
+PLOT
+1086
+192
+1286
+342
+Mean shark energy
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"mean" 1.0 0 -16777216 true "" "plot mean-energy sharks"
+"min" 1.0 0 -7500403 true "" "plot min-energy sharks"
+"max" 1.0 0 -2674135 true "" "plot max-energy sharks"
 
 @#$#@#$#@
 ## WHAT IS IT?
