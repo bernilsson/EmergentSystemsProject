@@ -19,6 +19,7 @@ fishes-own [
 sharks-own [
   flockmates         ;; agentset of nearby sharks
   nearest-neighbor   ;; closest one of our flockmates
+  fishes-nearby      ;; agentset of nearby fishes
   
   max-food-turn ;; Find food
   
@@ -35,18 +36,30 @@ to setup
     [ set color red - 2 + random 4  ;; random shades look nice
       set size 1.5  ;; easier to see
       setxy random-xcor random-ycor
-      set shape "fish" ]
+      set shape "fish"
+      
+      set max-food-turn random-float 10
+      set max-align-turn random-float 10
+      set max-cohere-turn random-float 10
+      set max-separate-turn random-float 10
+      set max-flee-turn random-float 10 ]
     
   create-sharks shark-population
     [ set color gray - 2 + random 4  ;; random shades look nice
       set size 4  ;; easier to see
       setxy random-xcor random-ycor
-      set shape "shark" ]
+      set shape "shark"
+      
+      set max-food-turn random-float 10
+      set max-align-turn random-float 10
+      set max-cohere-turn random-float 10
+      set max-separate-turn random-float 10 ]
   reset-ticks
 end
 
 to go
   ask turtles [ flock ]
+  ask sharks [ hunt ]
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
   repeat 5 [ ask turtles [ fd 0.2 ] display ]
@@ -113,6 +126,34 @@ to-report average-heading-towards-flockmates  ;; turtle procedure
     [ report heading ]
     [ report atan x-component y-component ]
 end
+
+;;; SHARK PROCEDURES
+
+to find-fishes
+  set fishes-nearby other fishes in-radius vision
+end
+
+to hunt
+  find-fishes
+  
+  if any? fishes-nearby
+    [ turn-towards average-heading-towards-fishes max-food-turn ]
+end
+
+to-report average-heading-towards-fishes  ;; turtle procedure
+  ;; "towards myself" gives us the heading from the other turtle
+  ;; to me, but we want the heading from me to the other turtle,
+  ;; so we add 180
+  let x-component mean [sin (towards myself + 180)] of fishes-nearby
+  let y-component mean [cos (towards myself + 180)] of fishes-nearby
+  ifelse x-component = 0 and y-component = 0
+    [ report heading ]
+    [ report atan x-component y-component ]
+end
+
+;;; FISH PROCEDURES
+
+
 
 ;;; HELPER PROCEDURES
 
@@ -208,7 +249,7 @@ fish-population
 fish-population
 1.0
 1000.0
-159
+63
 1.0
 1
 NIL
@@ -253,7 +294,7 @@ shark-population
 shark-population
 0
 1000
-144
+82
 1
 1
 NIL
