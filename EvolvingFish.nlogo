@@ -5,6 +5,7 @@ globals [
   mutation-rate
   mutation-step
   energy-threshold
+  replenish-speed
 ]
 
 turtles-own [
@@ -28,10 +29,15 @@ sharks-own [
   fishes-nearby      ;; agentset of nearby fishes
 ]
 
+patches-own [
+  well      ;; the amount of resources a patch has
+  max-well  ;; the max amount of resources for that patch
+]
+
 to setup
   clear-all
   
-  set energy-threshold 10
+  set energy-threshold 10000
   
   create-fishes fish-population
     [ set color red - 2 + random 4  ;; random shades look nice
@@ -57,14 +63,27 @@ to setup
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
       set max-separate-turn random-float 10 ]
+
+  setup-patches
+
   reset-ticks
 end
 
+to setup-patches ;; Make sure food is plenty :-)
+  ask patches [
+    set max-well random 50
+    set well max-well
+    recolor-patch
+  ]
+end
+
 to go
+  ask patches [ replenish ]
   ask turtles [ flock ]
-  ask turtles with [ energy < energy-threshold ] [ die ]
+  ask turtles with [ energy <= 0 ] [ die ]
   ask sharks [ hunt eat-fish ]
-  ask fishes [ flee ]
+  ask fishes [ flee eat-patch ]
+  ask patches [ recolor-patch ]
   
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
@@ -74,6 +93,19 @@ to go
   ;;   ask turtles [ fd 1 ]
   tick
 end
+
+;;;;; Patch procedures 
+
+to replenish  ;; patch procedure
+  if well < max-well [
+    set well well + ((max-well - well) * (replenish-speed / 100))
+  ]
+end
+
+to recolor-patch  ;; patch procedure
+   set pcolor scale-color green well 0 100
+end
+
 
 to flock  ;; turtle procedure
   find-flockmates
@@ -174,6 +206,13 @@ to flee
   if any? sharks-nearby
     [ turn-away average-heading-towards-sharks max-flee-turn ]
 end
+
+to eat-patch
+   if (energy < energy-threshold) and (well > 0) [
+    set energy energy + ( well / count fishes-here )
+    set well well - ( well / count fishes-here )
+  ]
+end 
 
 to-report average-heading-towards-sharks  ;; turtle procedure
   ;; "towards myself" gives us the heading from the other turtle
