@@ -4,6 +4,7 @@ breed [sharks shark]
 fishes-own [
   flockmates         ;; agentset of nearby fishes
   nearest-neighbor   ;; closest one of our flockmates
+  sharks-nearby      ;; agentset of nearby sharks
   
   max-food-turn ;; Find food
   
@@ -42,7 +43,7 @@ to setup
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
       set max-separate-turn random-float 10
-      set max-flee-turn random-float 10 ]
+      set max-flee-turn random-float 20 ]
     
   create-sharks shark-population
     [ set color gray - 2 + random 4  ;; random shades look nice
@@ -60,6 +61,7 @@ end
 to go
   ask turtles [ flock ]
   ask sharks [ hunt ]
+  ask fishes [ flee ]
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
   repeat 5 [ ask turtles [ fd 0.2 ] display ]
@@ -153,7 +155,27 @@ end
 
 ;;; FISH PROCEDURES
 
+to find-sharks
+  set sharks-nearby other sharks in-radius vision
+end
 
+to flee
+  find-sharks
+  
+  if any? sharks-nearby
+    [ turn-away average-heading-towards-sharks max-flee-turn ]
+end
+
+to-report average-heading-towards-sharks  ;; turtle procedure
+  ;; "towards myself" gives us the heading from the other turtle
+  ;; to me, but we want the heading from me to the other turtle,
+  ;; so we add 180
+  let x-component mean [sin (towards myself + 180)] of sharks-nearby
+  let y-component mean [cos (towards myself + 180)] of sharks-nearby
+  ifelse x-component = 0 and y-component = 0
+    [ report heading ]
+    [ report atan x-component y-component ]
+end
 
 ;;; HELPER PROCEDURES
 
@@ -249,7 +271,7 @@ fish-population
 fish-population
 1.0
 1000.0
-63
+44
 1.0
 1
 NIL
@@ -264,7 +286,7 @@ vision
 vision
 0.0
 10.0
-4
+6
 0.5
 1
 patches
@@ -294,7 +316,7 @@ shark-population
 shark-population
 0
 1000
-82
+10
 1
 1
 NIL
