@@ -30,6 +30,7 @@ sharks-own [
 
 patches-own [
   well      ;; the amount of resources a patch has
+  is-well?
 ]
 
 to setup
@@ -43,7 +44,7 @@ to setup
       setxy random-xcor random-ycor
       set shape "fish"
       
-      set energy 150
+      set energy 20
       set max-food-turn random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
@@ -70,8 +71,10 @@ end
 to setup-patches ;; Make sure food is plenty :-)
   ask patches [
 
-    if (random-float 1 < 0.3 )
-    [ set well random-float 1 ]
+    ifelse (random-float 1 < food-density / 1000.0 )
+    [ set is-well? true 
+      set well 1]
+    [ set is-well? false ]
     recolor-patch
   ]
 end
@@ -97,13 +100,14 @@ end
 
 ;;;;; Patch procedures 
 
-to replenish  ;; patch procedure
-  if well < max-well [
-    if (random-float 1 < 0.001 ) 
-      [set well well + (max-well - well) * (replenish-speed / 100)]
-    set well well + (max-well - well) * (sum [well] of neighbors / (max-well * 800))
+to replenish  ;; replenishes and moves food to neighboring patches.
+  if (well < max-well and is-well?) 
+    [set well well + replenish-speed]
+  if (well >= max-well - 2) [ ;; When to spread food
+    let infect one-of neighbors
+    set well well - 1
+    ask infect [set well well + 1]
   ]
-  
 end
 
 to recolor-patch  ;; patch procedure
@@ -217,7 +221,7 @@ to flee
 end
 
 to eat-patch
-   if (energy < energy-threshold) and (well > 0) [
+   if (energy < energy-threshold * 2) and (well > 0) [
     set energy energy + ( well / count fishes-here )
     set well well - ( well / count fishes-here )
   ]
@@ -304,36 +308,6 @@ to-report mutate [value]
   report ifelse-value (random-float 100 < mutation-rate)
                 [value + ((random-float 2 * mutation-step) - mutation-step)]
              [value]
-end
-
-
-;; STATISTICS
-
-to-report mean-energy [agentset]
-  let nrg 0
-  ask agentset [
-    set nrg nrg + energy
-  ]
-  report nrg / max list 1 count agentset
-end
-
-to-report min-energy [agentset]
-  if-else count agentset = 0
-    [ report 0 ]
-    [ let nrg 1000000000000000
-      ask agentset [
-        set nrg min list nrg energy
-      ]
-      report nrg
-    ]
-end
-
-to-report max-energy [agentset]
-  let nrg 0
-  ask agentset [
-    set nrg max list nrg energy
-  ]
-  report nrg
 end
 
 ; Copyright 1998 Uri Wilensky.
@@ -512,16 +486,16 @@ true
 true
 "" ""
 PENS
-"mean" 1.0 0 -16777216 true "" "plot mean-energy fishes"
-"min" 1.0 0 -7500403 true "" "plot min-energy fishes"
-"max" 1.0 0 -2674135 true "" "plot max-energy fishes"
+"mean" 1.0 0 -16777216 true "" "plot mean [energy] of fishes"
+"min" 1.0 0 -7500403 true "" "plot min [energy] of fishes"
+"max" 1.0 0 -2674135 true "" "plot max [energy] of fishes"
 
 PLOT
 973
 174
 1173
 324
-Mean shark energy
+Shark energy
 NIL
 NIL
 0.0
@@ -532,9 +506,9 @@ true
 true
 "" ""
 PENS
-"mean" 1.0 0 -16777216 true "" "plot mean-energy sharks"
-"min" 1.0 0 -7500403 true "" "plot min-energy sharks"
-"max" 1.0 0 -2674135 true "" "plot max-energy sharks"
+"mean" 1.0 0 -16777216 true "" "plot mean [energy] of sharks"
+"min" 1.0 0 -7500403 true "" "plot min [energy] of sharks"
+"max" 1.0 0 -2674135 true "" "plot max [energy] of sharks"
 
 SLIDER
 35
@@ -544,9 +518,9 @@ SLIDER
 replenish-speed
 replenish-speed
 0
-10
-10
-0.1
+2
+1
+0.2
 1
 NIL
 HORIZONTAL
@@ -556,7 +530,7 @@ PLOT
 335
 968
 485
-plot 1
+Algae
 NIL
 NIL
 0.0
@@ -568,6 +542,64 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot sum [well] of patches"
+
+PLOT
+769
+521
+1051
+694
+Fishes mean turns
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"flee" 1.0 0 -16777216 true "" "plot mean [max-flee-turn] of fishes"
+"food" 1.0 0 -7500403 true "" "plot mean [max-food-turn] of fishes"
+"align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of fishes"
+"cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of fishes"
+"separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of fishes"
+
+PLOT
+979
+334
+1248
+498
+Sharks mean turns
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"food" 1.0 0 -7500403 true "" "plot mean [max-food-turn] of sharks"
+"align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of sharks"
+"cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of sharks"
+"separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of sharks"
+
+SLIDER
+20
+316
+192
+349
+food-density
+food-density
+0
+100
+3
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
