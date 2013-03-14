@@ -189,7 +189,7 @@ end
 
 to reproduce-shark  
   let candidates sharks-here with [self > myself]
-  if any? candidates [ mate self one-of candidates ]
+  if any? candidates [ mate (turtle-set self one-of candidates) ]
 end
 
 to-report average-heading-towards-fishes  ;; turtle procedure
@@ -223,6 +223,13 @@ to eat-patch
   ]
 end 
 
+;; if there are any other agents at your location, reproduce with them
+;; We compare id numbers to prevent the same pair from reproducing twice
+to reproduce-fish  
+  let candidates fishes-here with [self > myself]
+  if any? candidates [ mate (turtle-set self one-of candidates) ]
+end
+
 to-report average-heading-towards-sharks  ;; turtle procedure
   ;; "towards myself" gives us the heading from the other turtle
   ;; to me, but we want the heading from me to the other turtle,
@@ -232,13 +239,6 @@ to-report average-heading-towards-sharks  ;; turtle procedure
   ifelse x-component = 0 and y-component = 0
     [ report heading ]
     [ report atan x-component y-component ]
-end
-
-;; if there are any other agents at your location, reproduce with them
-;; We compare id numbers to prevent the same pair from reproducing twice
-to reproduce-fish  
-  let candidates fishes-here with [self > myself]
-  if any? candidates [ mate self one-of candidates ]
 end
 
 to find-food
@@ -263,28 +263,26 @@ to turn-away [new-heading max-turn]  ;; turtle procedure
 end
 
 ;; Creates offspring from mating
-to mate [agent1 agent2]
-  if ( [energy] of agent1 > energy-threshold ) and
-    ( [energy] of agent2 > energy-threshold )
+to mate [agents]
+  if all? agents [energy > energy-threshold]
     [
       hatch 1 [
-        set max-align-turn    combine-gene [max-align-turn]    of agent1 [max-align-turn]    of agent2
-        set max-cohere-turn   combine-gene [max-cohere-turn]   of agent1 [max-cohere-turn]   of agent2
-        set max-separate-turn combine-gene [max-separate-turn] of agent1 [max-separate-turn] of agent2
-        set max-food-turn     combine-gene [max-food-turn]     of agent1 [max-food-turn]     of agent2
-        if is-fish? agent1
-        [ set max-flee-turn   combine-gene [max-flee-turn]     of agent1 [max-flee-turn]     of agent2 ]
+        set max-align-turn    combine-gene [max-align-turn]    of agents
+        set max-cohere-turn   combine-gene [max-cohere-turn]   of agents
+        set max-separate-turn combine-gene [max-separate-turn] of agents
+        set max-food-turn     combine-gene [max-food-turn]     of agents
+        if all? agents [ is-fish? self ]
+        [ set max-flee-turn   combine-gene [max-flee-turn]     of agents ]
         
         setxy xcor + random 2 ycor - random 2
         set energy energy-threshold
       ]
-      ask agent1 [ set energy energy / 2 ]
-      ask agent2 [ set energy energy / 2 ] 
+      ask agents [ set energy energy / 2 ]
     ]
 end
 
-to-report combine-gene [agent1 agent2 ]
-  report mutate cross agent1 agent2
+to-report combine-gene [genes]
+  report mutate one-of genes
 end
 
 ;; turn right by "turn" degrees (or left if "turn" is negative),
@@ -295,10 +293,6 @@ to turn-at-most [turn max-turn]  ;; turtle procedure
         [ rt max-turn ]
         [ lt max-turn ] ]
     [ rt turn ]
-end
-
-to-report cross [gene-A gene-B]
-  report one-of (list gene-A gene-B)
 end
 
 to-report mutate [value]
