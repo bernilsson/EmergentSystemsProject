@@ -99,10 +99,13 @@ end
 to replenish  ;; replenishes and moves food to neighboring patches.
   if (well < max-well and is-well?) 
     [set well well + replenish-speed]
-  if (well >= max-well * well-spread / 100) [ ;; When to spread food
+  if (well > max-well * well-spread / 100) [ ;; When to spread food
     let infect one-of neighbors
-    set well well - 1
-    ask infect [set well well + 1]
+    let overflow well - (max-well * well-spread / 100)
+    let difference well - [well] of infect
+    let change min list overflow difference / 5
+    set well well - change
+    ask infect [set well well + change]
   ]
 end
 
@@ -378,7 +381,7 @@ fish-population
 fish-population
 1.0
 1000.0
-265
+102
 1.0
 1
 NIL
@@ -423,7 +426,7 @@ shark-population
 shark-population
 0
 1000
-19
+33
 1
 1
 NIL
@@ -590,7 +593,7 @@ food-density
 food-density
 0
 100
-8
+11
 1
 1
 NIL
@@ -635,7 +638,7 @@ max-well
 max-well
 0
 100
-20
+26
 1
 1
 NIL
