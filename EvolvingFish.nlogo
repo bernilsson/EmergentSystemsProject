@@ -325,6 +325,8 @@ to-report max-energy [agentset]
   report nrg
 end
 
+
+
 ; Copyright 1998 Uri Wilensky.
 ; See Info tab for full copyright and license.
 @#$#@#$#@
@@ -501,16 +503,16 @@ true
 true
 "" ""
 PENS
-"mean" 1.0 0 -16777216 true "" "plot mean-energy fishes"
-"min" 1.0 0 -7500403 true "" "plot min-energy fishes"
-"max" 1.0 0 -2674135 true "" "plot max-energy fishes"
+"mean" 1.0 0 -16777216 true "" "plot mean [energy] of fishes"
+"min" 1.0 0 -7500403 true "" "plot min [energy] of fishes"
+"max" 1.0 0 -2674135 true "" "plot max [energy] of fishes"
 
 PLOT
 973
 174
 1173
 324
-Mean shark energy
+Shark energy
 NIL
 NIL
 0.0
@@ -521,9 +523,9 @@ true
 true
 "" ""
 PENS
-"mean" 1.0 0 -16777216 true "" "plot mean-energy sharks"
-"min" 1.0 0 -7500403 true "" "plot min-energy sharks"
-"max" 1.0 0 -2674135 true "" "plot max-energy sharks"
+"mean" 1.0 0 -16777216 true "" "plot mean [energy] of sharks"
+"min" 1.0 0 -7500403 true "" "plot min [energy] of sharks"
+"max" 1.0 0 -2674135 true "" "plot max [energy] of sharks"
 
 SLIDER
 35
@@ -545,7 +547,7 @@ PLOT
 335
 968
 485
-plot 1
+Algae
 NIL
 NIL
 0.0
@@ -557,6 +559,49 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot sum [well] of patches"
+
+PLOT
+769
+521
+1051
+694
+Fishes mean turns
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"flee" 1.0 0 -16777216 true "" "plot mean [max-flee-turn] of fishes"
+"food" 1.0 0 -7500403 true "" "plot mean [max-food-turn] of fishes"
+"align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of fishes"
+"cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of fishes"
+"separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of fishes"
+
+PLOT
+979
+334
+1248
+498
+Sharks mean turns
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"food" 1.0 0 -7500403 true "" "plot mean [max-food-turn] of sharks"
+"align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of sharks"
+"cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of sharks"
+"separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of sharks"
 
 @#$#@#$#@
 ## WHAT IS IT?
