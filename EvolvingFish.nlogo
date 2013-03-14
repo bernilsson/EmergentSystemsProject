@@ -83,7 +83,7 @@ to go
   ask turtles with [ energy <= 0 ] [ die ]
   ask sharks [ hunt eat-fish ]
   ask sharks with [ energy > energy-threshold ] [ reproduce-shark ]
-  ask fishes [ flee eat-patch ]
+  ask fishes [ flee find-food eat-patch ]
   ask fishes with [ energy > energy-threshold ] [ reproduce-fish ]
   ask patches [ recolor-patch ]
   
@@ -241,6 +241,17 @@ end
 to reproduce-fish  
   let candidates fishes-here with [self > myself]
   if any? candidates [ mate self one-of candidates ]
+end
+
+to find-food
+  let food max-one-of other patches in-radius vision [well]
+  let x-component sin (towards food)
+  let y-component cos (towards food)
+  let a heading
+  if x-component != 0 or y-component != 0
+    [ set a atan x-component y-component ]
+    
+  turn-towards a max-food-turn
 end
 
 ;;; HELPER PROCEDURES
