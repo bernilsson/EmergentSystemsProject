@@ -11,14 +11,21 @@ turtles-own [
   energy
   ;; Staying close:
   max-align-turn
+  max-align-speed
   max-cohere-turn
+  max-cohere-speed
   max-separate-turn
+  max-separate-speed
   max-food-turn ;; Find food
+  max-food-speed
+  velocity
+  turn-weights
 ]
 
 fishes-own [
   sharks-nearby      ;; agentset of nearby sharks
   max-flee-turn      ;; Avoid predators
+  max-flee-speed
 ]
 
 sharks-own [
@@ -77,7 +84,7 @@ end
 
 to go
   ask patches [ replenish ]
-  ask turtles [ flock ]
+  ask turtles [ set velocity 0 set turn-weights 0 flock ] 
   ask turtles with [ energy <= 0 ] [ die ]
   ask sharks [ hunt eat-fish ]
   ask sharks with [ energy > energy-threshold ] [ reproduce-shark ]
@@ -268,12 +275,17 @@ to mate [agent1 agent2]
     ( [energy] of agent2 > energy-threshold )
     [
       hatch 1 [
-        set max-align-turn    combine-gene [max-align-turn]    of agent1 [max-align-turn]    of agent2
-        set max-cohere-turn   combine-gene [max-cohere-turn]   of agent1 [max-cohere-turn]   of agent2
-        set max-separate-turn combine-gene [max-separate-turn] of agent1 [max-separate-turn] of agent2
-        set max-food-turn     combine-gene [max-food-turn]     of agent1 [max-food-turn]     of agent2
+        set max-align-turn     combine-gene [max-align-turn]     of agent1 [max-align-turn]     of agent2
+        set max-align-speed    combine-gene [max-align-speed]    of agent1 [max-align-speed]    of agent2
+        set max-cohere-turn    combine-gene [max-cohere-turn]    of agent1 [max-cohere-turn]    of agent2
+        set max-cohere-speed   combine-gene [max-cohere-speed]   of agent1 [max-cohere-speed]   of agent2
+        set max-separate-turn  combine-gene [max-separate-turn]  of agent1 [max-separate-turn]  of agent2
+        set max-separate-speed combine-gene [max-separate-speed] of agent1 [max-separate-speed] of agent2
+        set max-food-turn      combine-gene [max-food-turn]      of agent1 [max-food-turn]      of agent2
+        set max-food-speed     combine-gene [max-food-speed]     of agent1 [max-food-speed]     of agent2
         if is-fish? agent1
-        [ set max-flee-turn   combine-gene [max-flee-turn]     of agent1 [max-flee-turn]     of agent2 ]
+        [ set max-flee-turn    combine-gene [max-flee-turn]      of agent1 [max-flee-turn]      of agent2 
+          set max-flee-speed   combine-gene [max-flee-speed]     of agent1 [max-flee-speed]     of agent2 ]
         
         setxy xcor + random 2 ycor - random 2
         set energy energy-threshold
