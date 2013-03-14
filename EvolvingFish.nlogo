@@ -3,7 +3,6 @@ breed [sharks shark]
 
 globals [
   energy-threshold
-  max-gene-value
 ]
 
 turtles-own [
@@ -20,6 +19,8 @@ turtles-own [
   max-food-turn ;; Find food
   food-speed-slope
   speed-weights
+  
+  max-gene-turn
 ]
 
 fishes-own [
@@ -40,7 +41,7 @@ patches-own [
 to setup
   clear-all
   set energy-threshold 50
-  set max-gene-value 10  
+
   create-fishes fish-population
     [ set color red - 2 + random 4  ;; random shades look nice
       set size 1.5  ;; easier to see
@@ -53,8 +54,11 @@ to setup
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
       set max-separate-turn random-float 10
-      set max-flee-turn random-float 10 ]
-    
+      set max-flee-turn random-float 10 
+ 
+      set max-gene-turn 10
+      ;; set max-speed
+    ]
   create-sharks shark-population
     [ set color gray - 2 + random 4  ;; random shades look nice
       set size 4  ;; easier to see
@@ -62,12 +66,15 @@ to setup
       set shape "shark"
       
       set energy 400
-      set max-food-turn random-float 10
-      set food-speed-slope random-float 10
-      set max-align-turn random-float 10
-      set max-cohere-turn random-float 10
-      set max-separate-turn random-float 10 ]
-
+      set max-food-turn random-float 5
+      set food-speed-slope random-float 5
+      set max-align-turn random-float 5
+      set max-cohere-turn random-float 5
+      set max-separate-turn random-float 5
+      
+      set max-gene-turn 5
+      ]
+  
   setup-patches
 
   reset-ticks
@@ -270,7 +277,7 @@ end
 ;;; HELPER PROCEDURES
 
 to-report calculate-weight [slope value]
-  let normalized-slope (slope - max-gene-value / 2) / max-gene-value
+  let normalized-slope (slope - max-gene-turn / 2) / max-gene-turn
   report normalized-slope * (normalize-vision value) / 2 + 0.5
 end
 
@@ -327,7 +334,7 @@ to-report mutate [value]
   let new-value (value + ((random-float 2 * mutation-step) - mutation-step))
   let min-turn 0
   report ifelse-value (random-float 100 < mutation-rate)
-    [ min (list max-gene-value (max (list min-turn new-value))) ]
+    [ min (list max-gene-turn (max (list min-turn new-value))) ]
     [ value ]
 end
 
