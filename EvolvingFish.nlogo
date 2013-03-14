@@ -9,24 +9,22 @@ turtles-own [
   flockmates         ;; agentset of nearby turtles
   nearest-neighbor   ;; closest one of our flockmates
   energy
-  ;; Staying close:
-  max-align-turn
-  max-align-speed
-  max-cohere-turn
-  max-cohere-speed
-  max-separate-turn
-  max-separate-speed
-  max-food-turn ;; Find food
-  food-speed-slope
+
   speed-weights
-  
   max-gene-turn
+
+  genes 
+  ;; Gene keys:
+  ; find food:
+  food-turn food-speed-slope
+  ; flocking:
+  align-turn cohere-turn separate-turn
 ]
 
 fishes-own [
   sharks-nearby      ;; agentset of nearby sharks
-  max-flee-turn      ;; Avoid predators
-  flee-speed-slope
+  ;; Gene keys:
+  flee-turn flee-speed-slope ;; Avoid predators
 ]
 
 sharks-own [
@@ -48,16 +46,17 @@ to setup
       setxy random-xcor random-ycor
       set shape "fish"
       
+      set food-turn        0
+      set food-speed-slope 1
+      set align-turn       2
+      set cohere-turn      3
+      set separate-turn    4
+      set flee-turn        5
+      set flee-speed-slope 6
+      
       set energy 20
-      set max-food-turn random-float 10
-      set flee-speed-slope random-float 10
-      set max-align-turn random-float 10
-      set max-cohere-turn random-float 10
-      set max-separate-turn random-float 10
-      set max-flee-turn random-float 10 
- 
+      set genes n-values 7 [random-float 10]
       set max-gene-turn 10
-      ;; set max-speed
     ]
   create-sharks shark-population
     [ set color gray - 2 + random 4  ;; random shades look nice
@@ -65,15 +64,16 @@ to setup
       setxy random-xcor random-ycor
       set shape "shark"
       
-      set energy 400
-      set max-food-turn random-float 5
-      set food-speed-slope random-float 5
-      set max-align-turn random-float 5
-      set max-cohere-turn random-float 5
-      set max-separate-turn random-float 5
+      set food-turn        0
+      set food-speed-slope 1
+      set align-turn       2
+      set cohere-turn      3
+      set separate-turn    4
       
+      set energy 400
+      set genes n-values 5 [random-float 5]
       set max-gene-turn 5
-      ]
+    ]
   
   setup-patches
 
@@ -128,7 +128,6 @@ to recolor-patch  ;; patch procedure
    set pcolor scale-color green well 0 max-well
 end
 
-
 to flock  ;; turtle procedure
   find-flockmates
   if any? flockmates
@@ -150,13 +149,13 @@ end
 ;;; SEPARATE
 
 to separate  ;; turtle procedure
-  turn-away ([heading] of nearest-neighbor) max-separate-turn
+  turn-away ([heading] of nearest-neighbor) item separate-turn genes
 end
 
 ;;; ALIGN
 
 to align  ;; turtle procedure
-  turn-towards average-flockmate-heading max-align-turn
+  turn-towards average-flockmate-heading item align-turn genes
 end
 
 to-report average-flockmate-heading  ;; turtle procedure
@@ -173,7 +172,7 @@ end
 ;;; COHERE
 
 to cohere  ;; turtle procedure
-  turn-towards average-heading-towards-flockmates max-cohere-turn
+  turn-towards average-heading-towards-flockmates item cohere-turn genes
 end
 
 to-report average-heading-towards-flockmates  ;; turtle procedure
@@ -196,7 +195,7 @@ end
 to hunt
   find-fishes
   if any? fishes-nearby
-    [ turn-towards average-heading-towards-fishes max-food-turn
+    [ turn-towards average-heading-towards-fishes item food-turn genes
       set speed-weights 
           fput calculate-weight food-speed-slope (mean [distance myself] of fishes-nearby) 
                speed-weights ]
@@ -209,7 +208,7 @@ end
 
 to reproduce-shark  
   let candidates sharks-here with [self > myself]
-  if any? candidates [ mate (turtle-set self one-of candidates) ]
+  if any? candidates [ mate self one-of candidates ]
 end
 
 to-report average-heading-towards-fishes  ;; turtle procedure
@@ -232,7 +231,7 @@ end
 to flee
   find-sharks
   if any? sharks-nearby
-    [ turn-away average-heading-towards-sharks max-flee-turn 
+    [ turn-away average-heading-towards-sharks item flee-turn genes
       set speed-weights 
           fput calculate-weight flee-speed-slope (mean [distance myself] of sharks-nearby) 
                speed-weights ]
@@ -249,7 +248,7 @@ end
 ;; We compare id numbers to prevent the same pair from reproducing twice
 to reproduce-fish  
   let candidates fishes-here with [self > myself]
-  if any? candidates [ mate (turtle-set self one-of candidates) ]
+  if any? candidates [ mate self one-of candidates ]
 end
 
 to-report average-heading-towards-sharks  ;; turtle procedure
@@ -271,7 +270,7 @@ to find-food
   if x-component != 0 or y-component != 0
     [ set a atan x-component y-component ]
     
-  turn-towards a max-food-turn
+  turn-towards a item food-turn genes
 end
 
 ;;; HELPER PROCEDURES
@@ -294,30 +293,22 @@ to turn-away [new-heading max-turn]  ;; turtle procedure
 end
 
 ;; Creates offspring from mating
-to mate [agents]
-  if all? agents [energy > energy-threshold]
+to mate [agent1 agent2]
+  let parents (turtle-set agent1 agent2)
+  if all? parents [energy > energy-threshold]
     [
       hatch 1 [
-
-        set max-align-turn    combine-gene [max-align-turn]    of agents
-        set max-cohere-turn   combine-gene [max-cohere-turn]   of agents
-        set max-separate-turn combine-gene [max-separate-turn] of agents
-        set max-food-turn     combine-gene [max-food-turn]     of agents
-        set food-speed-slope  combine-gene [food-speed-slope]  of agents
-        if all? agents [ is-fish? self ]
-        [ set max-flee-turn    combine-gene [max-flee-turn]     of agents
-          set flee-speed-slope combine-gene [flee-speed-slope]  of agents ]
-
-        
+        set genes (map combine-gene [genes] of agent1  [genes] of agent2)
+       
         setxy xcor + random 2 ycor - random 2
         set energy energy-threshold
       ]
-      ask agents [ set energy energy - energy-threshold / 2 ]
+      ask parents [ set energy energy - energy-threshold / 2 ]
     ]
 end
 
-to-report combine-gene [genes]
-  report mutate one-of genes
+to-report combine-gene [gene1 gene2]
+  report mutate one-of list gene1 gene2
 end
 
 ;; turn right by "turn" degrees (or left if "turn" is negative),
@@ -587,12 +578,12 @@ true
 true
 "" ""
 PENS
-"flee" 1.0 0 -16777216 true "" "plot mean [max-flee-turn] of fishes"
-"food" 1.0 0 -7500403 true "" "plot mean [max-food-turn] of fishes"
-"align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of fishes"
-"cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of fishes"
-"separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of fishes"
-"flee-slope" 1.0 0 -1184463 true "" "plot mean [flee-speed-slope] of fishes"
+"flee" 1.0 0 -16777216 true "" "plot mean [item flee-turn genes] of fishes"
+"food" 1.0 0 -7500403 true "" "plot mean [item food-turn genes] of fishes"
+"align" 1.0 0 -2674135 true "" "plot mean [item align-turn genes] of fishes"
+"cohere" 1.0 0 -955883 true "" "plot mean [item cohere-turn genes] of fishes"
+"separate" 1.0 0 -6459832 true "" "plot mean [item separate-turn genes] of fishes"
+"flee-slope" 1.0 0 -1184463 true "" "plot mean [item flee-speed-slope genes] of fishes"
 
 PLOT
 1414
@@ -610,11 +601,11 @@ true
 true
 "" ""
 PENS
-"food" 1.0 0 -7500403 true "" "plot mean [max-food-turn] of sharks"
-"align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of sharks"
-"cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of sharks"
-"separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of sharks"
-"food-slope" 1.0 0 -1184463 true "" "plot mean [food-speed-slope] of sharks"
+"food" 1.0 0 -7500403 true "" "plot mean [item food-turn genes] of sharks"
+"align" 1.0 0 -2674135 true "" "plot mean [item align-turn genes] of sharks"
+"cohere" 1.0 0 -955883 true "" "plot mean [item cohere-turn genes] of sharks"
+"separate" 1.0 0 -6459832 true "" "plot mean [item separate-turn genes] of sharks"
+"food-slope" 1.0 0 -1184463 true "" "plot mean [item food-speed-slope genes] of sharks"
 
 SLIDER
 20
