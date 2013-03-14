@@ -41,11 +41,11 @@ to setup
       set shape "fish"
       
       set energy 20
-      set max-food-turn random-float 0
-      set max-align-turn random-float 0
-      set max-cohere-turn random-float 0
-      set max-separate-turn random-float 0
-      set max-flee-turn random-float 0 ]
+      set max-food-turn random-float 10
+      set max-align-turn random-float 10
+      set max-cohere-turn random-float 10
+      set max-separate-turn random-float 10
+      set max-flee-turn random-float 10 ]
     
   create-sharks shark-population
     [ set color gray - 2 + random 4  ;; random shades look nice
@@ -99,7 +99,7 @@ end
 to replenish  ;; replenishes and moves food to neighboring patches.
   if (well < max-well and is-well?) 
     [set well well + replenish-speed]
-  if (well >= max-well - 2) [ ;; When to spread food
+  if (well >= max-well * well-spread / 100) [ ;; When to spread food
     let infect one-of neighbors
     set well well - 1
     ask infect [set well well + 1]
@@ -384,7 +384,7 @@ fish-population
 fish-population
 1.0
 1000.0
-476
+265
 1.0
 1
 NIL
@@ -519,7 +519,7 @@ SLIDER
 replenish-speed
 replenish-speed
 0
-2
+20
 1
 0.2
 1
@@ -596,17 +596,17 @@ food-density
 food-density
 0
 100
-29
+8
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-21
-365
-193
-398
+23
+416
+195
+449
 mutation-rate
 mutation-rate
 0
@@ -618,10 +618,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-21
-404
-193
-437
+23
+455
+195
+488
 mutation-step
 mutation-step
 0
@@ -641,7 +641,22 @@ max-well
 max-well
 0
 100
-49
+20
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+20
+357
+192
+390
+well-spread
+well-spread
+0
+100
+65
 1
 1
 NIL
