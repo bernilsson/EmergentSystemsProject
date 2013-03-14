@@ -295,38 +295,6 @@ to-report mutate [value]
              [value]
 end
 
-
-;; STATISTICS
-
-to-report mean-energy [agentset]
-  let nrg 0
-  ask agentset [
-    set nrg nrg + energy
-  ]
-  report nrg / max list 1 count agentset
-end
-
-to-report min-energy [agentset]
-  if-else count agentset = 0
-    [ report 0 ]
-    [ let nrg 1000000000000000
-      ask agentset [
-        set nrg min list nrg energy
-      ]
-      report nrg
-    ]
-end
-
-to-report max-energy [agentset]
-  let nrg 0
-  ask agentset [
-    set nrg max list nrg energy
-  ]
-  report nrg
-end
-
-
-
 ; Copyright 1998 Uri Wilensky.
 ; See Info tab for full copyright and license.
 @#$#@#$#@
