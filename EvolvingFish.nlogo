@@ -3,6 +3,7 @@ breed [sharks shark]
 
 globals [
   energy-threshold
+  max-gene-value
 ]
 
 turtles-own [
@@ -11,14 +12,21 @@ turtles-own [
   energy
   ;; Staying close:
   max-align-turn
+  max-align-speed
   max-cohere-turn
+  max-cohere-speed
   max-separate-turn
+  max-separate-speed
   max-food-turn ;; Find food
+  food-speed-slope
+  velocity
+  speed-weights
 ]
 
 fishes-own [
   sharks-nearby      ;; agentset of nearby sharks
   max-flee-turn      ;; Avoid predators
+  max-flee-speed
 ]
 
 sharks-own [
@@ -33,7 +41,7 @@ patches-own [
 to setup
   clear-all
   set energy-threshold 50
-  
+  set max-gene-value 10  
   create-fishes fish-population
     [ set color red - 2 + random 4  ;; random shades look nice
       set size 1.5  ;; easier to see
@@ -55,6 +63,7 @@ to setup
       
       set energy 400
       set max-food-turn random-float 10
+      set food-speed-slope random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
       set max-separate-turn random-float 10 ]
@@ -77,7 +86,7 @@ end
 
 to go
   ask patches [ replenish ]
-  ask turtles [ flock ]
+  ask turtles [ set velocity 0 set speed-weights [0.2] flock ] 
   ask turtles with [ energy <= 0 ] [ die ]
   ask sharks [ hunt eat-fish ]
   ask sharks with [ energy > energy-threshold ] [ reproduce-shark ]
@@ -85,12 +94,11 @@ to go
   ask fishes with [ energy > energy-threshold ] [ reproduce-fish ]
   ask patches [ recolor-patch ]
   
-  ;; the following line is used to make the turtles
-  ;; animate more smoothly.
-  repeat 5 [ ask turtles [ fd 0.2 ] display ]
-  ;; for greater efficiency, at the expense of smooth
-  ;; animation, substitute the following line instead:
-  ;;   ask turtles [ fd 1 ]
+
+  ask turtles [ 
+    let weight mean speed-weights
+    fd 1 * weight 
+    set energy energy - weight * move-cost]
   tick
 end
 
@@ -179,10 +187,12 @@ to find-fishes
 end
 
 to hunt
-  set energy energy - 0.5
   find-fishes
   if any? fishes-nearby
-    [ turn-towards average-heading-towards-fishes max-food-turn ]
+    [ turn-towards average-heading-towards-fishes max-food-turn
+      set speed-weights 
+          fput calculate-weight food-speed-slope (mean [distance myself] of fishes-nearby) 
+               speed-weights ]
 end
 
 to eat-fish
@@ -213,7 +223,6 @@ to find-sharks
 end
 
 to flee
-  set energy energy - 0.5
   find-sharks
   if any? sharks-nearby
     [ turn-away average-heading-towards-sharks max-flee-turn ]
@@ -257,6 +266,15 @@ end
 
 ;;; HELPER PROCEDURES
 
+to-report calculate-weight [slope value]
+  let normalized-slope (slope - max-gene-value / 2) / max-gene-value
+  report normalized-slope * (normalize-vision value - 0.5) + 0.5
+end
+
+to-report normalize-vision [value]
+  report value / vision
+end
+
 to turn-towards [new-heading max-turn]  ;; turtle procedure
   turn-at-most (subtract-headings new-heading heading) max-turn
 end
@@ -270,12 +288,15 @@ to mate [agents]
   if all? agents [energy > energy-threshold]
     [
       hatch 1 [
+
         set max-align-turn    combine-gene [max-align-turn]    of agents
         set max-cohere-turn   combine-gene [max-cohere-turn]   of agents
         set max-separate-turn combine-gene [max-separate-turn] of agents
         set max-food-turn     combine-gene [max-food-turn]     of agents
+        set food-speed-slope  combine-gene [food-speed-slope]  of agents
         if all? agents [ is-fish? self ]
         [ set max-flee-turn   combine-gene [max-flee-turn]     of agents ]
+
         
         setxy xcor + random 2 ycor - random 2
         set energy energy-threshold
@@ -300,11 +321,9 @@ end
 
 to-report mutate [value]
   let new-value (value + ((random-float 2 * mutation-step) - mutation-step))
-  let max-turn 10
   let min-turn 0
-      
   report ifelse-value (random-float 100 < mutation-rate)
-    [ min (list max-turn (max (list min-turn new-value))) ]
+    [ min (list max-gene-value (max (list min-turn new-value))) ]
     [ value ]
 end
 
@@ -583,6 +602,7 @@ PENS
 "align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of sharks"
 "cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of sharks"
 "separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of sharks"
+"food-slope" 1.0 0 -1184463 true "" "plot mean [food-speed-slope] of sharks"
 
 SLIDER
 20
@@ -655,6 +675,21 @@ well-spread
 100
 65
 1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+22
+498
+194
+531
+move-cost
+move-cost
+0
+2
+1
+0.05
 1
 NIL
 HORIZONTAL
