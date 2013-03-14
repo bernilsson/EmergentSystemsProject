@@ -450,10 +450,10 @@ NIL
 HORIZONTAL
 
 PLOT
-831
-33
-1031
-183
+768
+17
+968
+167
 Fishes
 NIL
 NIL
@@ -468,10 +468,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count fishes"
 
 PLOT
-831
-191
-1031
-341
+768
+175
+968
+325
 Sharks
 NIL
 NIL
@@ -486,10 +486,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count sharks"
 
 PLOT
-1086
-34
-1286
-184
+973
+16
+1173
+166
 Fish energy
 NIL
 NIL
@@ -506,10 +506,10 @@ PENS
 "max" 1.0 0 -2674135 true "" "plot max-energy fishes"
 
 PLOT
-1086
-192
-1286
-342
+973
+174
+1173
+324
 Mean shark energy
 NIL
 NIL
@@ -541,10 +541,10 @@ NIL
 HORIZONTAL
 
 PLOT
-840
-360
-1040
-510
+768
+335
+968
+485
 plot 1
 NIL
 NIL
