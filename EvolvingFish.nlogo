@@ -2,7 +2,8 @@ breed [fishes fish]
 breed [sharks shark]
 
 globals [
-  energy-threshold
+  fish-energy-threshold
+  shark-energy-threshold
 ]
 
 turtles-own [
@@ -40,7 +41,8 @@ patches-own [
 
 to setup
   clear-all
-  set energy-threshold 50
+  set fish-energy-threshold 25
+  set shark-energy-threshold 100
 
   create-fishes fish-population
     [ set color red - 2 + random 4  ;; random shades look nice
@@ -65,7 +67,7 @@ to setup
       setxy random-xcor random-ycor
       set shape "shark"
       
-      set energy 400
+      set energy shark-energy-threshold * 2 - 1
       set max-food-turn random-float 5
       set food-speed-slope random-float 5
       set max-align-turn random-float 5
@@ -96,9 +98,9 @@ to go
   ask turtles [ flock ] 
   ask turtles with [ energy <= 0 ] [ die ]
   ask sharks [ set speed-weights [0.4] hunt eat-fish ]
-  ask sharks with [ energy > energy-threshold ] [ reproduce-shark ]
+  ask sharks with [ energy > shark-energy-threshold ] [ reproduce-shark ]
   ask fishes [  set speed-weights [0.2] flee find-food eat-patch ]
-  ask fishes with [ energy > energy-threshold ] [ reproduce-fish ]
+  ask fishes with [ energy > fish-energy-threshold ] [ reproduce-fish ]
   ask patches [ recolor-patch ]
 
 
@@ -192,13 +194,14 @@ to hunt
 end
 
 to eat-fish
-  set energy energy + (sum [energy] of fishes-here)
+  set energy energy + ((sum [energy] of fishes-here) * entropy / 100)
   ask fishes-here [die]
 end
 
 to reproduce-shark  
   let candidates sharks-here with [self > myself]
-  if any? candidates [ mate (turtle-set self one-of candidates) ]
+  if any? candidates [ mate (turtle-set self one-of candidates) shark-energy-threshold]
+  if energy >= shark-energy-threshold * 2 [mate (turtle-set self self) shark-energy-threshold]
 end
 
 ;;; FISH PROCEDURES
@@ -217,7 +220,7 @@ to flee
 end
 
 to eat-patch
-   if (energy < energy-threshold * 2) and (well > 0) [
+   if (energy < fish-energy-threshold * 2) and (well > 0) [
     set energy energy + ( well / count fishes-here )
     set well well - ( well / count fishes-here )
   ]
@@ -227,7 +230,7 @@ end
 ;; We compare id numbers to prevent the same pair from reproducing twice
 to reproduce-fish  
   let candidates fishes-here with [self > myself]
-  if any? candidates [ mate (turtle-set self one-of candidates) ]
+  if any? candidates [ mate (turtle-set self one-of candidates) fish-energy-threshold]
 end
 
 to find-food
@@ -272,8 +275,8 @@ to turn-away [new-heading max-turn]  ;; turtle procedure
 end
 
 ;; Creates offspring from mating
-to mate [agents]
-  if all? agents [energy > energy-threshold]
+to mate [agents threshold]
+  if all? agents [energy > threshold]
     [
       hatch 1 [
 
@@ -288,9 +291,9 @@ to mate [agents]
 
         
         setxy xcor + random 2 ycor - random 2
-        set energy energy-threshold
+        set energy threshold
       ]
-      ask agents [ set energy energy - energy-threshold / 2 ]
+      ask agents [ set energy energy - threshold / 2 ]
     ]
 end
 
@@ -389,7 +392,7 @@ fish-population
 fish-population
 1.0
 1000.0
-102
+246
 1.0
 1
 NIL
@@ -434,7 +437,7 @@ shark-population
 shark-population
 0
 100
-7
+15
 1
 1
 NIL
@@ -525,7 +528,7 @@ replenish-speed
 replenish-speed
 0
 20
-1
+0.6
 0.2
 1
 NIL
@@ -603,7 +606,7 @@ food-density
 food-density
 0
 100
-3
+5
 1
 1
 NIL
@@ -648,7 +651,7 @@ max-well
 max-well
 0
 100
-26
+14
 1
 1
 NIL
@@ -678,8 +681,23 @@ move-cost
 move-cost
 0
 2
-1
+0.5
 0.05
+1
+NIL
+HORIZONTAL
+
+SLIDER
+23
+551
+195
+584
+entropy
+entropy
+0
+100
+50
+1
 1
 NIL
 HORIZONTAL
