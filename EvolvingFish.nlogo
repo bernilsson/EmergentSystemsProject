@@ -173,18 +173,7 @@ end
 ;;; COHERE
 
 to cohere  ;; turtle procedure
-  turn-towards average-heading-towards-flockmates max-cohere-turn
-end
-
-to-report average-heading-towards-flockmates  ;; turtle procedure
-  ;; "towards myself" gives us the heading from the other turtle
-  ;; to me, but we want the heading from me to the other turtle,
-  ;; so we add 180
-  let x-component mean [sin (towards myself + 180)] of flockmates
-  let y-component mean [cos (towards myself + 180)] of flockmates
-  ifelse x-component = 0 and y-component = 0
-    [ report heading ]
-    [ report atan x-component y-component ]
+  turn-towards average-heading-towards flockmates max-cohere-turn
 end
 
 ;;; SHARK PROCEDURES
@@ -196,7 +185,7 @@ end
 to hunt
   find-fishes
   if any? fishes-nearby
-    [ turn-towards average-heading-towards-fishes max-food-turn
+    [ turn-towards average-heading-towards fishes-nearby max-food-turn
       set speed-weights 
           fput calculate-weight food-speed-slope (mean [distance myself] of fishes-nearby) 
                speed-weights ]
@@ -212,17 +201,6 @@ to reproduce-shark
   if any? candidates [ mate (turtle-set self one-of candidates) ]
 end
 
-to-report average-heading-towards-fishes  ;; turtle procedure
-  ;; "towards myself" gives us the heading from the other turtle
-  ;; to me, but we want the heading from me to the other turtle,
-  ;; so we add 180
-  let x-component mean [sin (towards myself + 180)] of fishes-nearby
-  let y-component mean [cos (towards myself + 180)] of fishes-nearby
-  ifelse x-component = 0 and y-component = 0
-    [ report heading ]
-    [ report atan x-component y-component ]
-end
-
 ;;; FISH PROCEDURES
 
 to find-sharks
@@ -232,7 +210,7 @@ end
 to flee
   find-sharks
   if any? sharks-nearby
-    [ turn-away average-heading-towards-sharks max-flee-turn 
+    [ turn-away average-heading-towards sharks-nearby max-flee-turn 
       set speed-weights 
           fput calculate-weight flee-speed-slope (mean [distance myself] of sharks-nearby) 
                speed-weights ]
@@ -252,17 +230,6 @@ to reproduce-fish
   if any? candidates [ mate (turtle-set self one-of candidates) ]
 end
 
-to-report average-heading-towards-sharks  ;; turtle procedure
-  ;; "towards myself" gives us the heading from the other turtle
-  ;; to me, but we want the heading from me to the other turtle,
-  ;; so we add 180
-  let x-component mean [sin (towards myself + 180)] of sharks-nearby
-  let y-component mean [cos (towards myself + 180)] of sharks-nearby
-  ifelse x-component = 0 and y-component = 0
-    [ report heading ]
-    [ report atan x-component y-component ]
-end
-
 to find-food
   let food max-one-of other patches in-radius vision [well]
   let x-component sin (towards food)
@@ -275,6 +242,17 @@ to find-food
 end
 
 ;;; HELPER PROCEDURES
+
+to-report average-heading-towards [agentset]  ;; turtle procedure
+  ;; "towards myself" gives us the heading from the other turtle
+  ;; to me, but we want the heading from me to the other turtle,
+  ;; so we add 180
+  let x-component mean [sin (towards myself + 180)] of agentset
+  let y-component mean [cos (towards myself + 180)] of agentset
+  ifelse x-component = 0 and y-component = 0
+    [ report heading ]
+    [ report atan x-component y-component ]
+end
 
 to-report calculate-weight [slope value]
   let normalized-slope (slope - max-gene-turn / 2) / max-gene-turn
