@@ -2,8 +2,6 @@ breed [fishes fish]
 breed [sharks shark]
 
 globals [
-  mutation-rate
-  mutation-step
   energy-threshold
   max-well ;; the max amount of resources in a patch
 ]
@@ -45,11 +43,11 @@ to setup
       set shape "fish"
       
       set energy 20
-      set max-food-turn random-float 10
-      set max-align-turn random-float 10
-      set max-cohere-turn random-float 10
-      set max-separate-turn random-float 10
-      set max-flee-turn random-float 20 ]
+      set max-food-turn random-float 0
+      set max-align-turn random-float 0
+      set max-cohere-turn random-float 0
+      set max-separate-turn random-float 0
+      set max-flee-turn random-float 0 ]
     
   create-sharks shark-population
     [ set color gray - 2 + random 4  ;; random shades look nice
@@ -295,7 +293,7 @@ end
 
 to-report mutate [value]
   report ifelse-value (random-float 100 < mutation-rate)
-                [value + ((random-float 2 * mutation-step) - mutation-step)]
+                [min (list 10 (max (list (value + ((random-float 2 * mutation-step) - mutation-step)) 0)))]
              [value]
 end
 
@@ -372,7 +370,7 @@ fish-population
 fish-population
 1.0
 1000.0
-47
+476
 1.0
 1
 NIL
@@ -500,10 +498,10 @@ PENS
 "max" 1.0 0 -2674135 true "" "plot max [energy] of sharks"
 
 SLIDER
-35
-263
-213
-296
+21
+276
+199
+309
 replenish-speed
 replenish-speed
 0
@@ -584,7 +582,37 @@ food-density
 food-density
 0
 100
-3
+29
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+21
+365
+193
+398
+mutation-rate
+mutation-rate
+0
+100
+50
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+21
+404
+193
+437
+mutation-step
+mutation-step
+0
+100
+50
 1
 1
 NIL
