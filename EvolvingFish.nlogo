@@ -3,6 +3,7 @@ breed [sharks shark]
 
 globals [
   energy-threshold
+  max-gene-value
 ]
 
 turtles-own [
@@ -17,9 +18,9 @@ turtles-own [
   max-separate-turn
   max-separate-speed
   max-food-turn ;; Find food
-  max-food-speed
+  food-speed-slope
   velocity
-  turn-weights
+  speed-weights
 ]
 
 fishes-own [
@@ -40,7 +41,7 @@ patches-own [
 to setup
   clear-all
   set energy-threshold 50
-  
+  set max-gene-value 10  
   create-fishes fish-population
     [ set color red - 2 + random 4  ;; random shades look nice
       set size 1.5  ;; easier to see
@@ -84,7 +85,7 @@ end
 
 to go
   ask patches [ replenish ]
-  ask turtles [ set velocity 0 set turn-weights 0 flock ] 
+  ask turtles [ set velocity 0 set speed-weights 0 flock ] 
   ask turtles with [ energy <= 0 ] [ die ]
   ask sharks [ hunt eat-fish ]
   ask sharks with [ energy > energy-threshold ] [ reproduce-shark ]
@@ -94,10 +95,10 @@ to go
   
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
-  repeat 5 [ ask turtles [ fd 0.2 ] display ]
+  ;; repeat 5 [ ask turtles [ fd 0.2 ] display ]
   ;; for greater efficiency, at the expense of smooth
   ;; animation, substitute the following line instead:
-  ;;   ask turtles [ fd 1 ]
+  ask turtles [ fd 1 ]
   tick
 end
 
@@ -186,7 +187,9 @@ to hunt
   set energy energy - 0.5
   find-fishes
   if any? fishes-nearby
-    [ turn-towards average-heading-towards-fishes max-food-turn ]
+    [ turn-towards average-heading-towards-fishes max-food-turn
+      set speed-weights 
+          speed-weights + calculate-weight food-speed-slope (normalize-vision (mean [distance myself] of fishes-nearby)) ]
 end
 
 to eat-fish
@@ -260,6 +263,15 @@ to find-food
 end
 
 ;;; HELPER PROCEDURES
+
+to-report calculate-weight [slope value]
+  let normalized-slope (slope - max-gene-value / 2) / max-gene-value
+  report normalized-slope * (normalize-vision value - 0.5) + 0.5
+end
+
+to-report normalize-vision [value]
+  report value / vision
+end
 
 to turn-towards [new-heading max-turn]  ;; turtle procedure
   turn-at-most (subtract-headings new-heading heading) max-turn
