@@ -3,7 +3,6 @@ breed [sharks shark]
 
 globals [
   energy-threshold
-  max-well ;; the max amount of resources in a patch
 ]
 
 turtles-own [
@@ -33,7 +32,6 @@ patches-own [
 
 to setup
   clear-all
-  set max-well 6
   set energy-threshold 50
   
   create-fishes fish-population
@@ -629,6 +627,21 @@ mutation-step
 0
 100
 50
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+20
+236
+192
+269
+max-well
+max-well
+0
+100
+49
 1
 1
 NIL
