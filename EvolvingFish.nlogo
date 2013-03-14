@@ -2,7 +2,8 @@ breed [fishes fish]
 breed [sharks shark]
 
 globals [
-  energy-threshold
+  fish-energy-threshold
+  shark-energy-threshold
 ]
 
 turtles-own [
@@ -38,7 +39,8 @@ patches-own [
 
 to setup
   clear-all
-  set energy-threshold 50
+  set fish-energy-threshold 25
+  set shark-energy-threshold 100
 
   create-fishes fish-population
     [ set color red - 2 + random 4  ;; random shades look nice
@@ -70,7 +72,7 @@ to setup
       set cohere-turn      3
       set separate-turn    4
       
-      set energy 400
+      set energy shark-energy-threshold * 2 - 1
       set genes n-values 5 [random-float 5]
       set max-gene-turn 5
     ]
@@ -96,9 +98,9 @@ to go
   ask turtles [ flock ] 
   ask turtles with [ energy <= 0 ] [ die ]
   ask sharks [ set speed-weights [0.4] hunt eat-fish ]
-  ask sharks with [ energy > energy-threshold ] [ reproduce-shark ]
+  ask sharks with [ energy > shark-energy-threshold ] [ reproduce-shark ]
   ask fishes [  set speed-weights [0.2] flee find-food eat-patch ]
-  ask fishes with [ energy > energy-threshold ] [ reproduce-fish ]
+  ask fishes with [ energy > fish-energy-threshold ] [ reproduce-fish ]
   ask patches [ recolor-patch ]
 
 
@@ -172,18 +174,7 @@ end
 ;;; COHERE
 
 to cohere  ;; turtle procedure
-  turn-towards average-heading-towards-flockmates item cohere-turn genes
-end
-
-to-report average-heading-towards-flockmates  ;; turtle procedure
-  ;; "towards myself" gives us the heading from the other turtle
-  ;; to me, but we want the heading from me to the other turtle,
-  ;; so we add 180
-  let x-component mean [sin (towards myself + 180)] of flockmates
-  let y-component mean [cos (towards myself + 180)] of flockmates
-  ifelse x-component = 0 and y-component = 0
-    [ report heading ]
-    [ report atan x-component y-component ]
+  turn-towards average-heading-towards flockmates item cohere-turn genes
 end
 
 ;;; SHARK PROCEDURES
@@ -195,31 +186,21 @@ end
 to hunt
   find-fishes
   if any? fishes-nearby
-    [ turn-towards average-heading-towards-fishes item food-turn genes
+    [ turn-towards average-heading-towards fishes-nearby item food-turn genes
       set speed-weights 
           fput calculate-weight food-speed-slope (mean [distance myself] of fishes-nearby) 
                speed-weights ]
 end
 
 to eat-fish
-  set energy energy + (sum [energy] of fishes-here)
+  set energy energy + ((sum [energy] of fishes-here) * entropy / 100)
   ask fishes-here [die]
 end
 
 to reproduce-shark  
   let candidates sharks-here with [self > myself]
-  if any? candidates [ mate self one-of candidates ]
-end
-
-to-report average-heading-towards-fishes  ;; turtle procedure
-  ;; "towards myself" gives us the heading from the other turtle
-  ;; to me, but we want the heading from me to the other turtle,
-  ;; so we add 180
-  let x-component mean [sin (towards myself + 180)] of fishes-nearby
-  let y-component mean [cos (towards myself + 180)] of fishes-nearby
-  ifelse x-component = 0 and y-component = 0
-    [ report heading ]
-    [ report atan x-component y-component ]
+  if any? candidates [ mate self one-of candidates shark-energy-threshold]
+  if energy >= shark-energy-threshold * 2 [mate self self shark-energy-threshold]
 end
 
 ;;; FISH PROCEDURES
@@ -231,14 +212,14 @@ end
 to flee
   find-sharks
   if any? sharks-nearby
-    [ turn-away average-heading-towards-sharks item flee-turn genes
+    [ turn-away average-heading-towards sharks-nearby item flee-turn genes 
       set speed-weights 
           fput calculate-weight flee-speed-slope (mean [distance myself] of sharks-nearby) 
                speed-weights ]
 end
 
 to eat-patch
-   if (energy < energy-threshold * 2) and (well > 0) [
+   if (energy < fish-energy-threshold * 2) and (well > 0) [
     set energy energy + ( well / count fishes-here )
     set well well - ( well / count fishes-here )
   ]
@@ -248,18 +229,7 @@ end
 ;; We compare id numbers to prevent the same pair from reproducing twice
 to reproduce-fish  
   let candidates fishes-here with [self > myself]
-  if any? candidates [ mate self one-of candidates ]
-end
-
-to-report average-heading-towards-sharks  ;; turtle procedure
-  ;; "towards myself" gives us the heading from the other turtle
-  ;; to me, but we want the heading from me to the other turtle,
-  ;; so we add 180
-  let x-component mean [sin (towards myself + 180)] of sharks-nearby
-  let y-component mean [cos (towards myself + 180)] of sharks-nearby
-  ifelse x-component = 0 and y-component = 0
-    [ report heading ]
-    [ report atan x-component y-component ]
+  if any? candidates [ mate self one-of candidates fish-energy-threshold]
 end
 
 to find-food
@@ -274,6 +244,17 @@ to find-food
 end
 
 ;;; HELPER PROCEDURES
+
+to-report average-heading-towards [agentset]  ;; turtle procedure
+  ;; "towards myself" gives us the heading from the other turtle
+  ;; to me, but we want the heading from me to the other turtle,
+  ;; so we add 180
+  let x-component mean [sin (towards myself + 180)] of agentset
+  let y-component mean [cos (towards myself + 180)] of agentset
+  ifelse x-component = 0 and y-component = 0
+    [ report heading ]
+    [ report atan x-component y-component ]
+end
 
 to-report calculate-weight [slope value]
   let normalized-slope (slope - max-gene-turn / 2) / max-gene-turn
@@ -293,17 +274,17 @@ to turn-away [new-heading max-turn]  ;; turtle procedure
 end
 
 ;; Creates offspring from mating
-to mate [agent1 agent2]
+to mate [agent1 agent2 threshold]
   let parents (turtle-set agent1 agent2)
-  if all? parents [energy > energy-threshold]
+  if all? parents [energy > threshold]
     [
       hatch 1 [
         set genes (map combine-gene [genes] of agent1  [genes] of agent2)
        
         setxy xcor + random 2 ycor - random 2
-        set energy energy-threshold
+        set energy threshold
       ]
-      ask parents [ set energy energy - energy-threshold / 2 ]
+      ask parents [ set energy energy - threshold / 2 ]
     ]
 end
 
@@ -402,7 +383,7 @@ fish-population
 fish-population
 1.0
 1000.0
-102
+246
 1.0
 1
 NIL
@@ -447,7 +428,7 @@ shark-population
 shark-population
 0
 100
-7
+15
 1
 1
 NIL
@@ -538,7 +519,7 @@ replenish-speed
 replenish-speed
 0
 20
-1
+0.6
 0.2
 1
 NIL
@@ -616,7 +597,7 @@ food-density
 food-density
 0
 100
-3
+5
 1
 1
 NIL
@@ -661,7 +642,7 @@ max-well
 max-well
 0
 100
-26
+14
 1
 1
 NIL
@@ -691,8 +672,23 @@ move-cost
 move-cost
 0
 2
-1
+0.5
 0.05
+1
+NIL
+HORIZONTAL
+
+SLIDER
+23
+551
+195
+584
+entropy
+entropy
+0
+100
+50
+1
 1
 NIL
 HORIZONTAL
