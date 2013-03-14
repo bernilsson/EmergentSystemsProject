@@ -19,14 +19,13 @@ turtles-own [
   max-separate-speed
   max-food-turn ;; Find food
   food-speed-slope
-  velocity
   speed-weights
 ]
 
 fishes-own [
   sharks-nearby      ;; agentset of nearby sharks
   max-flee-turn      ;; Avoid predators
-  max-flee-speed
+  flee-speed-slope
 ]
 
 sharks-own [
@@ -50,6 +49,7 @@ to setup
       
       set energy 20
       set max-food-turn random-float 10
+      set flee-speed-slope random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
       set max-separate-turn random-float 10
@@ -86,14 +86,14 @@ end
 
 to go
   ask patches [ replenish ]
-  ask turtles [ set velocity 0 set speed-weights [0.2] flock ] 
+  ask turtles [ flock ] 
   ask turtles with [ energy <= 0 ] [ die ]
-  ask sharks [ hunt eat-fish ]
+  ask sharks [ set speed-weights [0.4] hunt eat-fish ]
   ask sharks with [ energy > energy-threshold ] [ reproduce-shark ]
-  ask fishes [ flee find-food eat-patch ]
+  ask fishes [  set speed-weights [0.2] flee find-food eat-patch ]
   ask fishes with [ energy > energy-threshold ] [ reproduce-fish ]
   ask patches [ recolor-patch ]
-  
+
 
   ask turtles [ 
     let weight mean speed-weights
@@ -193,7 +193,7 @@ to hunt
 end
 
 to eat-fish
-  set energy energy + (50 * count fishes-here)
+  set energy energy + (sum [energy] of fishes-here)
   ask fishes-here [die]
 end
 
@@ -222,7 +222,10 @@ end
 to flee
   find-sharks
   if any? sharks-nearby
-    [ turn-away average-heading-towards-sharks max-flee-turn ]
+    [ turn-away average-heading-towards-sharks max-flee-turn 
+      set speed-weights 
+          fput calculate-weight flee-speed-slope (mean [distance myself] of sharks-nearby) 
+               speed-weights ]
 end
 
 to eat-patch
@@ -265,7 +268,7 @@ end
 
 to-report calculate-weight [slope value]
   let normalized-slope (slope - max-gene-value / 2) / max-gene-value
-  report normalized-slope * (normalize-vision value - 0.5) + 0.5
+  report normalized-slope * (normalize-vision value) / 2 + 0.5
 end
 
 to-report normalize-vision [value]
@@ -292,13 +295,14 @@ to mate [agents]
         set max-food-turn     combine-gene [max-food-turn]     of agents
         set food-speed-slope  combine-gene [food-speed-slope]  of agents
         if all? agents [ is-fish? self ]
-        [ set max-flee-turn   combine-gene [max-flee-turn]     of agents ]
+        [ set max-flee-turn    combine-gene [max-flee-turn]     of agents
+          set flee-speed-slope combine-gene [flee-speed-slope]  of agents ]
 
         
         setxy xcor + random 2 ycor - random 2
         set energy energy-threshold
       ]
-      ask agents [ set energy energy / 2 ]
+      ask agents [ set energy energy - energy-threshold / 2 ]
     ]
 end
 
@@ -330,11 +334,11 @@ end
 GRAPHICS-WINDOW
 250
 10
-757
-538
-35
-35
-7.0
+965
+746
+70
+70
+5.0
 1
 10
 1
@@ -344,10 +348,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--35
-35
--35
-35
+-70
+70
+-70
+70
 1
 1
 1
@@ -441,18 +445,18 @@ SLIDER
 shark-population
 shark-population
 0
-1000
-24
+100
+7
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-768
-17
-968
-167
+1203
+21
+1403
+171
 Fishes
 NIL
 NIL
@@ -467,10 +471,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count fishes"
 
 PLOT
-768
-175
-968
-325
+1203
+179
+1403
+329
 Sharks
 NIL
 NIL
@@ -485,10 +489,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count sharks"
 
 PLOT
-973
-16
-1173
-166
+1408
+20
+1608
+170
 Fish energy
 NIL
 NIL
@@ -505,10 +509,10 @@ PENS
 "max" 1.0 0 -2674135 true "" "plot max [energy] of fishes"
 
 PLOT
-973
-174
-1173
-324
+1408
+178
+1608
+328
 Shark energy
 NIL
 NIL
@@ -540,10 +544,10 @@ NIL
 HORIZONTAL
 
 PLOT
-768
-335
-968
-485
+1203
+339
+1403
+489
 Algae
 NIL
 NIL
@@ -558,10 +562,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot sum [well] of patches"
 
 PLOT
-769
-521
-1051
-694
+1204
+525
+1486
+698
 Fishes mean turns
 NIL
 NIL
@@ -578,12 +582,13 @@ PENS
 "align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of fishes"
 "cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of fishes"
 "separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of fishes"
+"flee-slope" 1.0 0 -1184463 true "" "plot mean [flee-speed-slope] of fishes"
 
 PLOT
-979
-334
-1248
-498
+1414
+338
+1683
+502
 Sharks mean turns
 NIL
 NIL
@@ -610,7 +615,7 @@ food-density
 food-density
 0
 100
-8
+3
 1
 1
 NIL
@@ -640,7 +645,7 @@ mutation-step
 mutation-step
 0
 100
-50
+4
 1
 1
 NIL
