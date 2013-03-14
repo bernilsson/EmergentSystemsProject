@@ -30,6 +30,7 @@ sharks-own [
 
 patches-own [
   well      ;; the amount of resources a patch has
+  is-well?
 ]
 
 to setup
@@ -43,7 +44,7 @@ to setup
       setxy random-xcor random-ycor
       set shape "fish"
       
-      set energy 150
+      set energy 20
       set max-food-turn random-float 10
       set max-align-turn random-float 10
       set max-cohere-turn random-float 10
@@ -70,8 +71,10 @@ end
 to setup-patches ;; Make sure food is plenty :-)
   ask patches [
 
-    if (random-float 1 < 0.3 )
-    [ set well random-float 1 ]
+    ifelse (random-float 1 < food-density / 1000.0 )
+    [ set is-well? true 
+      set well 1]
+    [ set is-well? false ]
     recolor-patch
   ]
 end
@@ -97,13 +100,14 @@ end
 
 ;;;;; Patch procedures 
 
-to replenish  ;; patch procedure
-  if well < max-well [
-    if (random-float 1 < 0.001 ) 
-      [set well well + (max-well - well) * (replenish-speed / 100)]
-    set well well + (max-well - well) * (sum [well] of neighbors / (max-well * 800))
+to replenish  ;; replenishes and moves food to neighboring patches.
+  if (well < max-well and is-well?) 
+    [set well well + replenish-speed]
+  if (well >= max-well - 2) [ ;; When to spread food
+    let infect one-of neighbors
+    set well well - 1
+    ask infect [set well well + 1]
   ]
-  
 end
 
 to recolor-patch  ;; patch procedure
@@ -217,7 +221,7 @@ to flee
 end
 
 to eat-patch
-   if (energy < energy-threshold) and (well > 0) [
+   if (energy < energy-threshold * 2) and (well > 0) [
     set energy energy + ( well / count fishes-here )
     set well well - ( well / count fishes-here )
   ]
@@ -503,9 +507,9 @@ SLIDER
 replenish-speed
 replenish-speed
 0
-10
-10
-0.1
+2
+1
+0.2
 1
 NIL
 HORIZONTAL
@@ -570,6 +574,21 @@ PENS
 "align" 1.0 0 -2674135 true "" "plot mean [max-align-turn] of sharks"
 "cohere" 1.0 0 -955883 true "" "plot mean [max-cohere-turn] of sharks"
 "separate" 1.0 0 -6459832 true "" "plot mean [max-separate-turn] of sharks"
+
+SLIDER
+20
+316
+192
+349
+food-density
+food-density
+0
+100
+3
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
