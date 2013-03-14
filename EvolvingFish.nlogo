@@ -273,6 +273,7 @@ to mate [agent1 agent2]
         set max-align-turn    combine-gene [max-align-turn]    of agent1 [max-align-turn]    of agent2
         set max-cohere-turn   combine-gene [max-cohere-turn]   of agent1 [max-cohere-turn]   of agent2
         set max-separate-turn combine-gene [max-separate-turn] of agent1 [max-separate-turn] of agent2
+        set max-food-turn     combine-gene [max-food-turn]     of agent1 [max-food-turn]     of agent2
         if is-fish? agent1
         [ set max-flee-turn   combine-gene [max-flee-turn]     of agent1 [max-flee-turn]     of agent2 ]
         
@@ -303,9 +304,13 @@ to-report cross [gene-A gene-B]
 end
 
 to-report mutate [value]
+  let new-value (value + ((random-float 2 * mutation-step) - mutation-step))
+  let max-turn 10
+  let min-turn 0
+      
   report ifelse-value (random-float 100 < mutation-rate)
-                [min (list 10 (max (list (value + ((random-float 2 * mutation-step) - mutation-step)) 0)))]
-             [value]
+    [ min (list max-turn (max (list min-turn new-value))) ]
+    [ value ]
 end
 
 ; Copyright 1998 Uri Wilensky.
