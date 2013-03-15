@@ -107,7 +107,7 @@ to go
   ask turtles [ 
     let weight mean speed-weights
     fd 1 * weight 
-    set energy energy - weight * move-cost]
+    set energy energy - weight * weight * move-cost]
   tick
 end
 
