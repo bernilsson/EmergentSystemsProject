@@ -1,3 +1,4 @@
+extensions [profiler]
 breed [fishes fish]
 breed [sharks shark]
 
@@ -200,12 +201,12 @@ to hunt
   if any? fishes-nearby
     [ turn-towards towards min-one-of fishes-nearby [distance myself] max-food-turn
       set speed-weights 
-          fput calculate-weight food-speed-slope (mean [distance myself] of fishes-nearby) 
+          fput calculate-weight food-speed-slope (min [distance myself] of fishes-nearby) 
                speed-weights ]
 end
 
 to eat-fish
-  set energy energy + ((sum [energy] of fishes-here) * entropy / 100)
+  set energy energy + ((sum [energy] of fishes-here) * shark-gain-from-fish / 100)
   ask fishes-here [die]
 end
 
@@ -242,11 +243,17 @@ to flee
 end
 
 to eat-patch
-   if (energy < fish-energy-threshold * 2) and (well > 0) [
-    set energy energy + ( well / count fishes-here )
-    set well well - ( well / count fishes-here )
+  if (energy < fish-energy-threshold * 2) and (well > 0) [
+    let energy-to-eat min (list ( well / count fishes-here ) apetite)
+    set energy energy + energy-to-eat
+    set well well - energy-to-eat
+    if(is-well? and well <= 0)
+      [ask one-of patches with [is-well? = false] [set is-well? true]
+        set is-well? false]
   ]
 end 
+
+
 
 ;; if there are any other agents at your location, reproduce with them
 ;; We compare id numbers to prevent the same pair from reproducing twice
@@ -285,7 +292,7 @@ to-report calculate-weight [slope value]
 end
 
 to-report normalize-vision [value]
-  report value / vision
+  report (vision - value)  / vision
 end
 
 to turn-towards [new-heading max-turn]  ;; turtle procedure
@@ -345,13 +352,13 @@ end
 ; See Info tab for full copyright and license.
 @#$#@#$#@
 GRAPHICS-WINDOW
-250
+237
 10
-965
-746
-70
-70
-5.0
+744
+538
+35
+35
+7.0
 1
 10
 1
@@ -361,10 +368,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--70
-70
--70
-70
+-35
+35
+-35
+35
 1
 1
 1
@@ -414,7 +421,7 @@ fish-population
 fish-population
 1.0
 1000.0
-246
+59
 1.0
 1
 NIL
@@ -459,7 +466,7 @@ shark-population
 shark-population
 0
 100
-15
+10
 1
 1
 NIL
@@ -628,7 +635,7 @@ food-density
 food-density
 0
 100
-5
+1
 1
 1
 NIL
@@ -673,7 +680,7 @@ max-well
 max-well
 0
 100
-14
+11
 1
 1
 NIL
@@ -688,7 +695,7 @@ well-spread
 well-spread
 0
 100
-65
+83
 1
 1
 NIL
@@ -703,7 +710,7 @@ move-cost
 move-cost
 0
 2
-0.5
+0.65
 0.05
 1
 NIL
@@ -712,14 +719,46 @@ HORIZONTAL
 SLIDER
 23
 551
-195
+201
 584
-entropy
-entropy
+shark-gain-from-fish
+shark-gain-from-fish
 0
 100
-50
+61
 1
+1
+%
+HORIZONTAL
+
+BUTTON
+43
+630
+109
+663
+profile
+profiler:start         ;; start profiling\nrepeat 20 [ go ]       ;; run something you want to measure\nprofiler:stop          ;; stop profiling\nprint profiler:report  ;; view the results\nprofiler:reset         ;; clear the data
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+24
+596
+196
+629
+apetite
+apetite
+0
+3
+1
+0.2
 1
 NIL
 HORIZONTAL
