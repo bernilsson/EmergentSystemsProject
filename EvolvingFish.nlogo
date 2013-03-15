@@ -41,8 +41,7 @@ patches-own [
 to setup
   clear-all
   set fish-energy-threshold 25
-  set shark-energy-threshold 100
-
+  set shark-energy-threshold 75
   create-fishes fish-population
     [ set color red - 2 + random 4  ;; random shades look nice
       set size 1.5  ;; easier to see
@@ -58,8 +57,8 @@ to setup
       set flee-speed-slope 6
       
       set energy 20
-      set genes n-values 7 [random-float 10]
-      set max-gene-turn 10
+      set genes n-values 7 [random-float 8]
+      set max-gene-turn 8
     ]
   create-sharks shark-population
     [ set color gray - 2 + random 4  ;; random shades look nice
@@ -75,6 +74,7 @@ to setup
       
       set energy shark-energy-threshold * 2 - 1
       set genes n-values 5 [random-float 5]
+      ;;set genes replace-item food-speed-slope genes 5
       set max-gene-turn 5
     ]
   
@@ -84,14 +84,16 @@ to setup
 end
 
 to setup-patches ;; Make sure food is plenty :-)
-  ask patches [
 
-    ifelse (random-float 1 < food-density / 1000.0 )
-    [ set is-well? true 
-      set well 1]
-    [ set is-well? false ]
-    recolor-patch
-  ]
+  ask patches 
+    [ set is-well? false 
+      recolor-patch]
+  ask n-of food-density patches [
+    set is-well? true 
+      set well 1
+      recolor-patch]
+    
+  
 end
 
 to go
@@ -187,13 +189,10 @@ end
 to hunt
   find-fishes
   if any? fishes-nearby
-<<<<<<< HEAD
-    [ turn-towards towards min-one-of fishes-nearby [distance myself] max-food-turn
-=======
-    [ turn-towards average-heading-towards fishes-nearby item food-turn genes
->>>>>>> 1d982cecbbd46ce0a273a01d2a7c4688a6afb614
+    [ turn-towards towards min-one-of fishes-nearby [distance myself] item food-turn genes
+      let weight calculate-weight item food-speed-slope genes (min [distance myself] of fishes-nearby) 
       set speed-weights 
-          fput calculate-weight food-speed-slope (min [distance myself] of fishes-nearby) 
+          fput weight
                speed-weights ]
 end
 
@@ -267,9 +266,9 @@ to-report average-heading-towards [agentset]  ;; turtle procedure
     [ report atan x-component y-component ]
 end
 
-to-report calculate-weight [slope value]
+to-report calculate-weight [slope dist]
   let normalized-slope (slope - max-gene-turn / 2) / max-gene-turn
-  report normalized-slope * (normalize-vision value) / 2 + 0.5
+  report normalized-slope * (normalize-vision dist) + 0.5
 end
 
 to-report normalize-vision [value]
@@ -394,7 +393,7 @@ fish-population
 fish-population
 1.0
 1000.0
-59
+87
 1.0
 1
 NIL
@@ -439,7 +438,7 @@ shark-population
 shark-population
 0
 100
-10
+8
 1
 1
 NIL
@@ -530,7 +529,7 @@ replenish-speed
 replenish-speed
 0
 20
-0.6
+1.2
 0.2
 1
 NIL
@@ -588,7 +587,7 @@ NIL
 0.0
 10.0
 0.0
-10.0
+5.0
 true
 true
 "" ""
@@ -608,7 +607,7 @@ food-density
 food-density
 0
 100
-1
+4
 1
 1
 NIL
@@ -623,7 +622,7 @@ mutation-rate
 mutation-rate
 0
 100
-50
+10
 1
 1
 NIL
@@ -638,7 +637,7 @@ mutation-step
 mutation-step
 0
 100
-4
+2
 1
 1
 NIL
@@ -653,7 +652,7 @@ max-well
 max-well
 0
 100
-11
+17
 1
 1
 NIL
@@ -668,7 +667,7 @@ well-spread
 well-spread
 0
 100
-83
+46
 1
 1
 NIL
@@ -683,7 +682,7 @@ move-cost
 move-cost
 0
 2
-0.65
+0.35
 0.05
 1
 NIL
@@ -698,7 +697,7 @@ shark-gain-from-fish
 shark-gain-from-fish
 0
 100
-61
+31
 1
 1
 %
@@ -730,7 +729,7 @@ apetite
 apetite
 0
 3
-1
+1.6
 0.2
 1
 NIL
