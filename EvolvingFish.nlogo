@@ -198,7 +198,7 @@ end
 to hunt
   find-fishes
   if any? fishes-nearby
-    [ turn-towards average-heading-towards-fishes max-food-turn
+    [ turn-towards towards min-one-of fishes-nearby [distance myself] max-food-turn
       set speed-weights 
           fput calculate-weight food-speed-slope (mean [distance myself] of fishes-nearby) 
                speed-weights ]
