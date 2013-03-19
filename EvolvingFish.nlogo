@@ -1142,6 +1142,53 @@ repeat 200 [ go ]
     <go>go</go>
     <final>export-all-plots (word "gene-" behaviorspace-run-number "-plot.csv")</final>
     <timeLimit steps="60000"/>
+    <exitCondition>count sharks = 0 or count fishes = 0</exitCondition>
+    <enumeratedValueSet variable="fish-population">
+      <value value="87"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replenish-speed">
+      <value value="1.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shark-population">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-well">
+      <value value="17"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minimum-separation">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mutation-step">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="apetite">
+      <value value="1.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="move-cost">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="food-density">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shark-gain-from-fish">
+      <value value="31"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="well-spread">
+      <value value="46"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mutation-rate">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="only-plots32" repetitions="32" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <final>export-all-plots (word "gene-" behaviorspace-run-number "-plot.csv")</final>
+    <timeLimit steps="60000"/>
+    <exitCondition>count sharks = 0 or count fishes = 0</exitCondition>
     <enumeratedValueSet variable="fish-population">
       <value value="87"/>
     </enumeratedValueSet>
