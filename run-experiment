@@ -1,0 +1,1 @@
+/pkg/netlogo/netlogo-5.0.3/netlogo-headless.sh --model `pwd`/EvolvingFish.nlogo --experiment "only-plots" 
