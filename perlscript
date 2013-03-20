@@ -33,7 +33,9 @@ while(my $line = <>){
 }
 
 for my $i (0 .. $#files) {
+    $files[$i] =~ s/"//g;
+    $files[$i] =~ s/,true//g;
     my @lines = split("\n", $files[$i]);
-    open(my $fil, ">", $filenames[$i] . ".csv") or die "This should not happen";
-    print $fil join ("\n", @lines[2 .. $#lines]);
+    open(my $fil, ">>", $filenames[$i] . ".csv") or die "This should not happen";
+    print $fil  @lines[$#lines - 1] . "\n";
 }
