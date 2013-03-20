@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+
+#We need this to convert capital ÅÄÖ into lowercase åäö.
+use locale
+
+#Create a hash to store how often a word is used.
+my $filenr = 0;
+my @files = [];
+my $filenames = [];
+my $count = 0;
+#my $string = do { local $/; <> };
+#my @values = split('\n"""[\S\s]*\n[\S\s]*"""', $string );
+
+#print($values[2])
+
+
+#Read stdin or every file passed as an argument to the script
+while(my $line = <>){
+    if ($line eq "\n") {
+        if($count == 0) {
+            $filenames[$filenr] = <>;
+            $filenames[$filenr] =~ s/(""")//;
+            $filenames[$filenr] =~ s/("""\n)//;
+        }
+        $count++;
+        if($count == 3) {
+            $count = 0;
+            $filenr++;
+        }
+    } elsif($count == 0) {
+        $files[$filenr - 1] .=  $line;
+    }
+}
+
+for my $i (0 .. $#files) {
+    my @lines = split("\n", $files[$i]);
+    open(my $fil, ">", $filenames[$i] . ".csv") or die "This should not happen";
+    print $fil join ("\n", @lines[2 .. $#lines]);
+}
